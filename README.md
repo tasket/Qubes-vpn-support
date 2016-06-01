@@ -4,10 +4,11 @@ Scripts for setting up secure VPN VMs in Qubes OS
 Objectives:
 -
 * Provide a Fail-Closed yet transparent environment for secure VPN usage
-* Isolate the VPN client within a dedicated Qubes Proxy VM (VPN VM)
+* Isolate the VPN client within a dedicated Proxy VM; leverage Qubes architecture
+* Remain compatible with conventional server names for the VPN server
 * Prevent access to local VPN VM programs, from downstream and upstream
 * Prevent accidental clearnet and tunnel access from within the VPN
-* Support debian and fedora OS templates
+* Support Whonix, Debian and Fedora OS templates
 * Future: Possibly add systray icon for VPN status and control
 
 Setup
@@ -51,3 +52,10 @@ Notes on qubes-vpn-handler.sh
 This handler script is tested to work with openvpn v2.3.4, but should be easily adaptable to other VPN clients with one or two variable-handling changes.
 
 The 'up' parameter adds DNS address translation without altering the local resolv.conf settings. This is intended as a privacy measure to prevent any inadvertant access by local (VPN VM) programs over the VPN tunnel.
+
+Roles
+--
+* The VPN VM is generally trusted. It is assumed its programs won't try to impersonate openvpn (send data via port 1194), for example.
+* Everything outside the VPN VM and VPN server is essentially untrusted (from the VPN client's point of view): This means the sys-net, local router, ISP and downstream vms are potential threats. (This doesn't affect the users POV of whether individual appvms are trusted.)
+* Everything that is downstream from VPN VM communicates through the VPN tunnel only.
+* The purpose of the programs in the VPN VM is to support the creation of the VPN link. Their net access is either null or clearnet only; they should not send packets through the VPN tunnel and potentially get published.
