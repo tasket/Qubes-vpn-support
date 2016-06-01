@@ -17,16 +17,16 @@ Create a Qubes Proxy VM with your preferred name and template (with openvpn inst
 
 All files should have root ownership:
 
-`
-cd /rw/config
-chown root:root qubes-firewall-user-script rc.local
-chown -R root:root openvpn
-`
+```
+sudo cd /rw/config
+sudo chown root:root qubes-firewall-user-script rc.local
+sudo chown -R root:root openvpn
+```
 
 These files need +x permissions:
-
-`chmod +x qubes-firewall-user-script rc.local openvpn/qubes-vpn-handler.sh
-`
+```
+sudo chmod +x qubes-firewall-user-script rc.local openvpn/qubes-vpn-handler.sh
+```
 
 Re-start the VPN VM then see if the link works -- status pop-ups should appear. Then switch the 'test-up' parameter in the .ovpn config to 'up' and test normal operation.
 
@@ -39,10 +39,11 @@ This builds on the internal rules already set by Qubes 3.x firewall in a Proxy V
 There are no hard-coded IPs and the OUTPUT controls VPN traffic by group ID. So if your VPN provider has dozens of IPs randomly-assigned via DNS or uses a client other than openvpn then no editing of the firewall script should be necessary.
 
 Group ID can be easily assigned to VPN client with /rw/config/rc.local like this:
-    groupadd -r qvpn
+```
+groupadd -r qvpn
     sg qvpn -c 'openvpn --cd /rw/config/openvpn/ --config openvpn-client.ovpn \
     --daemon --writepid /var/run/openvpn/openvpn-client.pid'
-
+```
 ...or you can add a "Group=qvpn" line to the Service section of your systemd openvpn-client.service file (see the example .service file).
 
 Also, local traffic to and from tun0 and vif+ is disallowed, as well as incoming icmp packets.
