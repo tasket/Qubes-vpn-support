@@ -1,0 +1,15 @@
+[Unit]
+Description=OpenVPN Client
+After=syslog.target network.target
+ 
+[Service]
+Group=qvpn
+PrivateTmp=true
+Type=forking
+PIDFile=/var/run/openvpn/openvpn-client.pid
+ExecStart=/usr/sbin/openvpn --daemon --writepid /var/run/openvpn/openvpn-client.pid --cd /rw/config/openvpn/ --config openvpn-client.ovpn
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
