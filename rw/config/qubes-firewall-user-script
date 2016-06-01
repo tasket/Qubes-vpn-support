@@ -9,6 +9,7 @@
 iptables -P INPUT DROP
 iptables -P FORWARD DROP
 iptables -P OUTPUT DROP
+iptables -F OUTPUT
 
 ## Stop all leaks between downstream (AppVMs) and upstream (Internet):
 iptables -I FORWARD -o eth0 -j DROP
@@ -17,14 +18,14 @@ iptables -I FORWARD -i eth0 -j DROP
 ## Add qvpn group and wait for change
 if grep -q "^qvpn:" /etc/group ; then
     groupadd -rf qvpn
-    sync; sleep 2s
+    sync
 fi
+sleep 2s
 
 ## Prevent accidental communications from within VPN VM;
 ## The gid-owner rule requires the VPN client be run with group ID 'qvpn'
 ## to allow outbound traffic from the client. It can be replaced by un-commenting
 ## the two --dport 1194 rules (if you are not using the group ID).
-iptables -F OUTPUT
 iptables -A OUTPUT -o lo -j ACCEPT
 #iptables -A OUTPUT -p udp -o eth0 --dport 1194 -m state --state NEW,ESTABLISHED -j ACCEPT
 #iptables -A OUTPUT -p tcp -o eth0 --dport 1194 -m state --state NEW,ESTABLISHED -j ACCEPT
