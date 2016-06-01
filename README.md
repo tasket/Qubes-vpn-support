@@ -14,14 +14,20 @@ Setup
 -
 Create a Qubes Proxy VM with your preferred name and template (with openvpn installed) and using either sys-net or firewall as NetVM. Then add the Qubes-vpn-support files to /rw/config and customize the openvpn-client.ovpn config file.
 
-All files should have 'chown root:root' ownership.
+All files should have root ownership:
 
-These files need 'chmod +x' permissions:
-* qubes-firewall-user-script
-* qubes-vpn-handler.sh
-* rc.local
+`
+cd /rw/config
+chown root:root qubes-firewall-user-script rc.local
+chown -R root:root openvpn
+`
 
-Re-start the VPN VM, then see if the link works (status pop-ups should appear). Then switch the 'test-up' parameter in the ovpn config with 'up' and test normal operation.
+These files need +x permissions:
+
+`chmod +x qubes-firewall-user-script rc.local openvpn/qubes-vpn-handler.sh
+`
+
+Re-start the VPN VM then see if the link works -- status pop-ups should appear. Then switch the 'test-up' parameter in the .ovpn config to 'up' and test normal operation.
 
 Operation is simple: Just link App VMs to the VPN VM and start them.
 
