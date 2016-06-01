@@ -5,11 +5,12 @@ Objectives:
 -
 * Provide a **leakproof, fail-closed** yet transparent VPN client in *qube* form
 * Isolate the VPN client within a dedicated Proxy VM; leverage Qubes architecture
-* Easy setup: support server names, minimal file editing resulting in fewer opportunities for configuration errors
+* Easy setup: support server names, minimal file editing
   * Only client config and password files need editing by user (supply server name, username and password)
+  * __Fewer opportunities for configuration errors__
 * Prevent access to local VPN VM programs, from downstream and upstream
 * Prevent accidental clearnet and tunnel access from within the VPN
-* Support Whonix, Debian and Fedora OS templates
+* Support __Whonix__, Debian and Fedora OS templates
 * Add conveniece and GUI features where sensible
 
 Setup
