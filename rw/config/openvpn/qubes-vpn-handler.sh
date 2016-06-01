@@ -24,7 +24,8 @@ case "$1" in
 test-up)
 
 ##  Use test-up parameter to test your basic VPN link before enabling qubes-firewall-user-script
-##  (do NOT use beyond testing period):
+##  (do NOT use beyond testing period). Type-in your nameserver address:
+	cp -a /etc/resolv.conf /etc/resolv.vpnbak
 	echo "nameserver TYPE-your-dns-address-here" >/etc/resolv.conf
 	usr/lib/qubes/qubes-setup-dnat-to-ns
 	su -c 'notify-send "$(hostname): LINK IS UP." --icon=network-idle' user
