@@ -30,7 +30,7 @@ sudo chmod +x qubes-firewall-user-script rc.local openvpn/qubes-vpn-handler.sh
 
 Re-start the VPN VM then see if the link works -- status pop-ups should appear. Then switch the 'test-up' parameter in the .ovpn config to 'up' and test normal operation.
 
-Operation is simple: Just link App VMs to the VPN VM and start them.
+Operation is simple: Just link other VMs to the VPN VM and start them.
 
 Notes on qubes-firewall-user-script
 -
@@ -40,11 +40,12 @@ There are no hard-coded IPs and the OUTPUT controls VPN traffic by group ID. So 
 
 Group ID can be easily assigned to VPN client with /rw/config/rc.local like this:
 ```
-groupadd -r qvpn
-    sg qvpn -c 'openvpn --cd /rw/config/openvpn/ --config openvpn-client.ovpn \
-    --daemon --writepid /var/run/openvpn/openvpn-client.pid'
+groupadd -rf qvpn
+sleep 2s
+sg qvpn -c 'openvpn --cd /rw/config/openvpn/ --config openvpn-client.ovpn \
+--daemon --writepid /var/run/openvpn/openvpn-client.pid'
 ```
-...or you can add a "Group=qvpn" line to the Service section of your systemd openvpn-client.service file (see the example .service file).
+...or you can add a "Group=qvpn" line to the Service section of your systemd openvpn-client.service file (see the included .service file and rc.local).
 
 Also, local traffic to and from tun0 and vif+ is disallowed, as well as incoming icmp packets.
 
