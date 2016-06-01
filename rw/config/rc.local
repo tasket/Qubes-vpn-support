@@ -1,9 +1,9 @@
 #!/bin/sh
 
 # Need qvpn group for openvpn access through firewall
-groupadd -r qvpn
+groupadd -rf qvpn
 
 # Add our openvpn service config and start
 cp /rw/config/openvpn/openvpn-client.service /etc/systemd/system/
-sync; systemctl daemon-reload
+sync; sleep 2s; systemctl daemon-reload
 systemctl --no-block start openvpn-client.service
