@@ -3,7 +3,7 @@ Scripts for setting up secure VPN VMs in Qubes OS
 
 Objectives:
 -
-* Provide a Fail-Closed yet transparent environment for secure VPN usage
+* Provide a **fail-closed** yet transparent VPN tunnel in *qube* form
 * Isolate the VPN client within a dedicated Proxy VM; leverage Qubes architecture
 * Remain compatible with conventional server names for the VPN server
 * Prevent access to local VPN VM programs, from downstream and upstream
