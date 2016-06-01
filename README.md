@@ -9,7 +9,7 @@ Objectives:
 * Prevent access to local VPN VM programs, from downstream and upstream
 * Prevent accidental clearnet and tunnel access from within the VPN
 * Support Whonix, Debian and Fedora OS templates
-* Future: Possibly add systray icon for VPN status and control
+* Add conveniece and GUI features where sensible
 
 Setup
 -
@@ -59,3 +59,8 @@ Roles
 * Everything outside the VPN VM and VPN server is essentially untrusted (from the VPN client's point of view): This means the sys-net, local router, ISP and downstream vms are potential threats. (This doesn't affect the users POV of whether individual appvms are trusted.)
 * Everything that is downstream from VPN VM communicates through the VPN tunnel only.
 * The purpose of the programs in the VPN VM is to support the creation of the VPN link. Their net access is either null or clearnet only; they should not send packets through the VPN tunnel and potentially get published.
+
+Future
+-
+* Possibly add systray icon for VPN status and control
+* Installation package for easier setup
