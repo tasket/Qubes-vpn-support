@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ########################################################################
 ##
 ##  qubes-firewall-user-script for use with a VPN client such as openvpn.
