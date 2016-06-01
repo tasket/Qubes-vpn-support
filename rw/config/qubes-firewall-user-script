@@ -14,6 +14,12 @@ iptables -P OUTPUT DROP
 iptables -I FORWARD -o eth0 -j DROP
 iptables -I FORWARD -i eth0 -j DROP
 
+## Add qvpn group and wait for change
+if grep -q "^qvpn:" /etc/group ; then
+    groupadd -rf qvpn
+    sync; sleep 2s
+fi
+
 ## Prevent accidental communications from within VPN VM;
 ## The gid-owner rule requires the VPN client be run with group ID 'qvpn'
 ## to allow outbound traffic from the client. It can be replaced by un-commenting
