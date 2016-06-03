@@ -16,7 +16,7 @@ iptables -I FORWARD -o eth0 -j DROP
 iptables -I FORWARD -i eth0 -j DROP
 
 ## Add qvpn group and wait for change
-if grep -q "^qvpn:" /etc/group ; then
+if ! grep -q "^qvpn:" /etc/group ; then
     groupadd -rf qvpn
     sync
 fi
