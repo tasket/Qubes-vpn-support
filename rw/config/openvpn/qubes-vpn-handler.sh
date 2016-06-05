@@ -13,7 +13,7 @@
 ## variables, or supply a 'vpn_dns' variable.
 
 set -e
-export PATH=$PATH:/usr/sbin:/sbin
+export PATH="$PATH:/usr/sbin:/sbin"
 
 case "$1" in
 
