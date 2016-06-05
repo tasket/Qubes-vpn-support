@@ -27,11 +27,11 @@ sleep 2s
 ## to allow outbound traffic from the client. It can be replaced by un-commenting
 ## the two --dport 1194 rules (if you are not using the group ID).
 iptables -A OUTPUT -o lo -j ACCEPT
+iptables -A OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -m state --state NEW,ESTABLISHED -j ACCEPT
 #iptables -A OUTPUT -p udp -o eth0 --dport 1194 -m state --state NEW,ESTABLISHED -j ACCEPT
 #iptables -A OUTPUT -p tcp -o eth0 --dport 1194 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -p udp -o eth0 --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -p tcp -o eth0 --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
+#iptables -A OUTPUT -p udp -o eth0 --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
+#iptables -A OUTPUT -p tcp -o eth0 --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
 
 ## Block INPUT from downstream and the tunnel:
 iptables -I INPUT -i vif+ -j DROP
