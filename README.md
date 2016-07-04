@@ -3,10 +3,10 @@ Scripts for setting up secure VPN VMs in Qubes OS
 
 Objectives:
 -
-* Provide a **leakproof, fail-closed** yet transparent VPN client in *qube* form
+* Provide a **fail-closed** yet transparent VPN client that prevents leaks
 * Isolate the VPN client within a dedicated Proxy VM; leverage Qubes architecture
 * Easy setup: support server names, minimal file editing
-  * Only client config and password files need editing by user (supply server name, username and password)
+  * Only VPN client config needs editing by user (openvpn); or client config & rc.local (others)
   * __Fewer opportunities for configuration errors__
 * Prevent access to local VPN VM programs, from downstream and upstream
 * Prevent accidental clearnet and tunnel access from within the VPN
@@ -22,7 +22,7 @@ These files must be executable:
 sudo chmod +x qubes-firewall-user-script rc.local vpn/qubes-vpn-handler.sh
 ```
 
-Re-start the VPN VM to see if the link works -- a status pop-up should appear.
+Re-start the VPN VM to see if the link works -- a status pop-up should appear letting you know you're connected.
 
 Step-by-step for any VPN client
 -
@@ -38,7 +38,7 @@ script-security 2
 up 'qubes-vpn-handler.sh up'
 down 'qubes-vpn-handler.sh down'
 ```
-If your VPN service doesn't send DNS addresses via DHCP or if you prefer to set them manually, then set the `vpn_dns` environment variable with the numbers you wish qubes-vpn-handler to use. For openvpn, add a setenv line to your config ovpn:
+If your VPN service doesn't send DNS addresses via DHCP or if you need to set them another way, then assign the numbers you wish qubes-vpn-handler to use to the `vpn_dns` environment variable. For openvpn, add a setenv line to your config ovpn:
 ```
 setenv vpn_dns '1.2.3.4  6.7.8.9'
 ```
@@ -46,24 +46,27 @@ setenv vpn_dns '1.2.3.4  6.7.8.9'
 6. Add the `qubes-firewall-user-script` and `rc.local` files to /rw/config and make them both executable.
 
 
+Operation is simple: Just link other VMs to the VPN VM and start them!
 
-
-Operation is simple: Just link other VMs to the VPN VM and start them.
-
-Notes on qubes-firewall-user-script
+Using clients other than openvpn
 -
-This builds on the internal rules already set by Qubes 3.x firewall in a Proxy VM, and puts the VM in a very locked-down state for networking.
-
-There are no hard-coded IPs and the OUTPUT controls VPN traffic by group ID. So if your VPN provider has dozens of IPs randomly-assigned via DNS or uses a client other than openvpn then no editing of the firewall script should be necessary.
-
-Group ID can be easily assigned to VPN client with /rw/config/rc.local like this:
+The main issue with using another client is how you run it. You can add a systemd .service file to /rw/config/vpn and adjust rc.local to use that instead. See the supplied openvpn-client.service file as an example of running under the `qvpn` group. You may also run it directly from rc.local like so (using opevpn as an example):
 ```
 groupadd -rf qvpn
 sleep 2s
 sg qvpn -c 'openvpn --cd /rw/config/openvpn/ --config openvpn-client.ovpn \
 --daemon --writepid /var/run/openvpn/openvpn-client.pid'
 ```
-...or you can add a "Group=qvpn" line to the Service section of your systemd openvpn-client.service file (see the included .service file and rc.local).
+
+Passing the DNS addresses to `qubes-vpn-handler.sh` is another issue: If your client doesn't automatically pass `foreign_option` vars in the same format as openvpn, then use the `vpn_dns` environment variable as explained in the script comments.
+
+Since it is the job of a VPN vendor to focus tightly on __link__ security, you should be wary of VPN clients that try to manipulate iptables directly to secure the system's overall communicatios profile; It is unlikely they take Qubes' network topology into account. Normally, security should be added to a VPN setup from the OS or specialty scripts (like these) or by the admins and users themselves.
+
+Notes on qubes-firewall-user-script
+-
+This builds on the internal rules already set by Qubes 3.x firewall in a Proxy VM, and puts the VM in a very locked-down state for networking.
+
+There are no hard-coded IPs as traffic is controlled by group ID. So even if your VPN provider has dozens of IPs randomly-assigned via DNS or uses a client other than openvpn then no editing of the firewall script should be necessary.
 
 Also, local traffic to and from tun0 and vif+ is disallowed, as well as incoming icmp packets.
 
