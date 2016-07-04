@@ -3,7 +3,7 @@ Scripts for setting up secure VPN VMs in Qubes OS
 
 Objectives:
 -
-* Provide a **fail-closed** yet transparent VPN client that prevents leaks
+* Provide a **fail-closed** and transparent VPN environment that prevents leaks
 * Isolate the VPN client within a dedicated Proxy VM; leverage Qubes architecture
 * Easy setup: support server names, minimal file editing
   * Only VPN client config needs editing by user (openvpn); or client config & rc.local (others)
