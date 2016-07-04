@@ -10,8 +10,9 @@
 ## up 'qubes-vpn-handler.sh up'
 ## down 'qubes-vpn-handler.sh down'
 ##
-## Adapting for other VPN clients: Define DHCP 'foreign_option_*'
-## variables, or supply a 'vpn_dns' variable containing DNS addresses.
+## Automatically handles DHCP-generated addresses. Use 'vpn_dns' environment var
+## as override/alternative.
+##  In openvpn config, format is: setenv vpn_dns 'X.X.X.X  Y.Y.Y.Y [...]'
 
 set -e
 export PATH="$PATH:/usr/sbin:/sbin"
@@ -30,8 +31,6 @@ case "$1" in
 
 ;;
 up)
-	# To set static DNS addresses assign them to 'vpn_dns' environment var.
-	#  In openvpn config, format is: setenv vpn_dns 'X.X.X.X  Y.Y.Y.Y [...]'
 	if [[ -z "$vpn_dns" ]] ; then
 		# Parses DHCP option variables to set DNS address translation:
 		for optionname in ${!foreign_option_*} ; do
