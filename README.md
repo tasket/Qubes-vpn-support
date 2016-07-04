@@ -30,18 +30,18 @@ Step-by-step for any VPN client
 2. Create a /rw/config/vpn folder, place your VPN config file (openvpn-client.ovpn for example) there.
 3. Test the connection with a command like `sudo openvpn --cd  /rw/config/vpn --config openvpn-client.ovpn`. You should be able to ping the remote network through the VPN before proceeding... though its unlikely you will have DNS at this point.
 
-If you wish to test with DNS now, you can manually add your VPN's DNS addresses to `/etc/resolv.conf` and then run the `/usr/lib/qubes/qubes-setup-dnat-to-ns` script (make sure the VPN link is up first).
+ If you wish to test with DNS now, you can manually add your VPN's DNS addresses to `/etc/resolv.conf` and then run the `/usr/lib/qubes/qubes-setup-dnat-to-ns` script (make sure the VPN link is up first).
 
 4. To enable automatic DNS, add the `qubes-vpn-handler.sh` script to /rw/config/vpn and make it executable with `sudo chmod +x /rw/config/vpn/qubes-vpn-handler.sh`. Then add script entries the VPN config file. For openvpn, use these:
-```
-script-security 2
-up 'qubes-vpn-handler.sh up'
-down 'qubes-vpn-handler.sh down'
-```
-If your VPN service doesn't send DNS addresses via DHCP or if you need to set them another way, then assign the numbers you wish qubes-vpn-handler to use to the `vpn_dns` environment variable. For openvpn, add a setenv line to your config ovpn:
-```
-setenv vpn_dns '1.2.3.4  6.7.8.9'
-```
+ ```
+ script-security 2
+ up 'qubes-vpn-handler.sh up'
+ down 'qubes-vpn-handler.sh down'
+ ```
+ If your VPN service doesn't send DNS addresses via DHCP or if you need to set them another way, then assign the numbers you wish qubes-vpn-handler to use to the `vpn_dns` environment variable. For openvpn, add a setenv line to your config ovpn:
+ ```
+ setenv vpn_dns '1.2.3.4  6.7.8.9'
+ ```
 5. Test the VPN link again with the same command you used in step 3. You may need to restart the VM first to clear DNS settings from step 3 if you used them.
 6. Add the `qubes-firewall-user-script` and `rc.local` files to /rw/config and make them both executable.
 
