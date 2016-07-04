@@ -23,7 +23,7 @@ test-up)
 ##  (do NOT use beyond testing period). Type-in your nameserver address:
 	cp -a /etc/resolv.conf /etc/resolv.vpnbak
 	echo "nameserver TYPE-your-dns-address-here" >/etc/resolv.conf
-	usr/lib/qubes/qubes-setup-dnat-to-ns
+	/usr/lib/qubes/qubes-setup-dnat-to-ns
 	su - -c 'notify-send "$(hostname): LINK IS UP." --icon=network-idle' user
 	exit 0
 
