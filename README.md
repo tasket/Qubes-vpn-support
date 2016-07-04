@@ -13,24 +13,40 @@ Objectives:
 * Support __Whonix__, Debian and Fedora OS templates
 * Add conveniece and GUI features where sensible
 
-Setup
+Quickstart for openvpn
 -
-Create a Qubes Proxy VM with your preferred name and template (with openvpn installed) and using either sys-net or firewall as NetVM. Then add the Qubes-vpn-support files to /rw/config and customize the openvpn-client.ovpn config file.
+Create a proxyvm to run the VPN client. As root, place Qubes-vpn-support files and subfolders in /rw/config. Place your existing VPN config (*.ovpn) and related files in /rw/config/vpn. Then edit your VPN config to enable scripting (for openvpn, copy the `script-security`, `up` and `down` lines from the example ovpn to your own config) and rename it to `openvpn-client.ovpn`.
 
-All files should have root ownership:
-
+These files must be executable:
 ```
-sudo cd /rw/config
-sudo chown root:root qubes-firewall-user-script rc.local
-sudo chown -R root:root openvpn
+sudo chmod +x qubes-firewall-user-script rc.local vpn/qubes-vpn-handler.sh
 ```
 
-These files need +x permissions:
-```
-sudo chmod +x qubes-firewall-user-script rc.local openvpn/qubes-vpn-handler.sh
-```
+Re-start the VPN VM to see if the link works -- a status pop-up should appear.
 
-Re-start the VPN VM then see if the link works -- status pop-ups should appear. Then switch the 'test-up' parameter in the .ovpn config to 'up' and test normal operation.
+Step-by-step for any VPN client
+-
+1. Create a Qubes Proxy VM with your preferred template and using either sys-net or sys-firewall as NetVM. The template must have your VPN client software installed *but not auto-starting* e.g. `sudo systemctl disable openvpn.service`.
+2. Create a /rw/config/vpn folder, place your VPN config file (openvpn-client.ovpn for example) there.
+3. Test the connection with a command like `sudo openvpn --cd  /rw/config/vpn --config openvpn-client.ovpn`. You should be able to ping the remote network through the VPN before proceeding... though its unlikely you will have DNS at this point.
+
+If you wish to test with DNS now, you can manually add your VPN's DNS addresses to `/etc/resolv.conf` and then run the `/usr/lib/qubes/qubes-setup-dnat-to-ns` script (make sure the VPN link is up first).
+
+4. To enable automatic DNS, add the `qubes-vpn-handler.sh` script to /rw/config/vpn and make it executable with `sudo chmod +x /rw/config/vpn/qubes-vpn-handler.sh`. Then add script entries the VPN config file. For openvpn, use these:
+```
+script-security 2
+up 'qubes-vpn-handler.sh up'
+down 'qubes-vpn-handler.sh down'
+```
+If your VPN service doesn't send DNS addresses via DHCP or if you prefer to set them manually, then set the `vpn_dns` environment variable with the numbers you wish qubes-vpn-handler to use. For openvpn, add a setenv line to your config ovpn:
+```
+setenv vpn_dns '1.2.3.4  6.7.8.9'
+```
+5. Test the VPN link again with the same command you used in step 3. You may need to restart the VM first to clear DNS settings from step 3 if you used them.
+6. Add the `qubes-firewall-user-script` and `rc.local` files to /rw/config and make them both executable.
+
+
+
 
 Operation is simple: Just link other VMs to the VPN VM and start them.
 
