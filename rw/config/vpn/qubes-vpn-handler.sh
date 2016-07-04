@@ -3,21 +3,22 @@
 ## ++   qubes-vpn-handler.sh   ++ ##
 ##
 ## Handles DNS address translation and link notification for Qubes VPN VMs.
-## To use, set as 'up' and 'down' script with parameter in your openvpn config.
-## Examples:
-## up 'qubes-vpn-handler.sh test-up'  (for link testing in VPN VM)
+## To use, set as 'up' and 'down' script with parameter in your VPN config.
+## Example for openvpn:
+##
+## script-security 2
 ## up 'qubes-vpn-handler.sh up'
 ## down 'qubes-vpn-handler.sh down'
 ##
-## Adapting for other VPN clients: Simply replace the openvpn DHCP 'foreign_option_*'
-## variables, or supply a 'vpn_dns' variable.
+## Adapting for other VPN clients: Define DHCP 'foreign_option_*'
+## variables, or supply a 'vpn_dns' variable containing DNS addresses.
 
 set -e
 export PATH="$PATH:/usr/sbin:/sbin"
 
 case "$1" in
 
-test-up)
+'test-up')
 
 ##  Use test-up parameter to test your basic VPN link before enabling qubes-firewall-user-script
 ##  (do NOT use beyond testing period). Type-in your nameserver address:
@@ -29,10 +30,10 @@ test-up)
 
 ;;
 up)
-	# To override DHCP DNS, assign static DNS addresses with 'setenv vpn_dns' in openvpn config;
-	# Format is 'X.X.X.X  Y.Y.Y.Y [...]' with quotes.
+	# To set static DNS addresses assign them to 'vpn_dns' environment var.
+	#  In openvpn config, format is: setenv vpn_dns 'X.X.X.X  Y.Y.Y.Y [...]'
 	if [[ -z "$vpn_dns" ]] ; then
-		# Parses DHCP options from openvpn to set DNS address translation:
+		# Parses DHCP option variables to set DNS address translation:
 		for optionname in ${!foreign_option_*} ; do
 			option="${!optionname}"
 			unset fops; fops=($option)
