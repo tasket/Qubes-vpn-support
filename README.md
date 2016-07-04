@@ -32,7 +32,7 @@ Step-by-step for any VPN client
 
  If you wish to test with DNS now, you can manually add your VPN's DNS addresses to `/etc/resolv.conf` and then run the `/usr/lib/qubes/qubes-setup-dnat-to-ns` script (make sure the VPN link is up first).
 
-4. To enable automatic DNS, add the `qubes-vpn-handler.sh` script to /rw/config/vpn and make it executable with `sudo chmod +x /rw/config/vpn/qubes-vpn-handler.sh`. Then add script entries the VPN config file. For openvpn, use these:
+4. To enable automatic DNS, add the `qubes-vpn-handler.sh` script to /rw/config/vpn and make it executable with `sudo chmod +x /rw/config/vpn/qubes-vpn-handler.sh`. Then add script entries to the VPN config file. For openvpn, use these lines:
  ```
  script-security 2
  up 'qubes-vpn-handler.sh up'
