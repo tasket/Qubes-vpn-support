@@ -4,6 +4,6 @@
 groupadd -rf qvpn
 
 # Add our openvpn service config and start
-cp /rw/config/openvpn/openvpn-client.service /etc/systemd/system/
+cp /rw/config/vpn/openvpn-client.service /etc/systemd/system/
 sync; sleep 2s; systemctl daemon-reload
 systemctl --no-block start openvpn-client.service
