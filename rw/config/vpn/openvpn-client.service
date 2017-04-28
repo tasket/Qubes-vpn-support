@@ -1,13 +1,23 @@
+########################################################
+##  Qubes VPN Support, OpenVPN version
+##
+## This may be adapted to other VPN programs by changing
+## the ConditionPathExists= and ExecStart= parameters.
+
 [Unit]
-Description=OpenVPN Client
-After=syslog.target network.target
- 
+Description=OpenVPN Client for Qubes
+ConditionPathExists=/var/run/qubes-service/qubes-vpn-openvpn
+After=syslog.target network.target qubes-firewall.service
+
 [Service]
 Group=qvpn
 PrivateTmp=true
 Type=forking
-PIDFile=/var/run/openvpn/openvpn-client.pid
-ExecStart=/usr/sbin/openvpn --daemon --writepid /var/run/openvpn/openvpn-client.pid --cd /rw/config/vpn/ --config openvpn-client.ovpn
+PIDFile=/var/run/qubes/vpn-client.pid
+ExecStart=/usr/sbin/openvpn --daemon --writepid /var/run/qubes/vpn-client.pid \
+--cd /rw/config/vpn/ --config openvpn-client.ovpn \
+--script-security 2 --up "qubes-vpn-ns up" --down "qubes-vpn-ns down" \
+--auth-user-pass userpassword.txt
 Restart=always
 RestartSec=10
 
