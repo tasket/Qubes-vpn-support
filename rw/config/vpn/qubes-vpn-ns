@@ -60,7 +60,7 @@ up)
             iptables -t nat -A PR-QBS -i vif+ -p udp --dport 53 -j DNAT --to $addr
             iptables -t nat -A PR-QBS -i vif+ -p tcp --dport 53 -j DNAT --to $addr
         done
-        echo "$vpn_dns\ " >$nspath; fix-ips
+        echo "$vpn_dns " >$nspath; fix-ips
         su - -c 'notify-send "$(hostname): LINK IS UP." --icon=network-idle' user
     else
         su - -c 'notify-send "$(hostname): LINK UP, NO DNS!" --icon=dialog-error' user
