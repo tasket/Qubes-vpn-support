@@ -44,5 +44,5 @@ ip6tables -P INPUT DROP
 ip6tables -F INPUT
 
 # Fix nameserver IPs in FORWARD
-/usr/lib/qubes/vpn-ns-handler fwupdate
+/rw/config/vpn/qubes-vpn-ns fwupdate
 
