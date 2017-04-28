@@ -6,7 +6,7 @@
 
 [Unit]
 Description=OpenVPN Client for Qubes
-ConditionPathExists=/var/run/qubes-service/qubes-vpn-openvpn
+ConditionPathExists=/rw/config/vpn
 After=syslog.target network.target qubes-firewall.service
 
 [Service]
