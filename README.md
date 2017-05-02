@@ -24,7 +24,14 @@ These files must be executable:
 sudo chmod +x /rw/config/qubes-firewall-user-script /rw/config/rc.local /rw/config/vpn/qubes-vpn-ns
 ```
 
-Re-start the VPN VM to see if the link works -- a status pop-up should appear letting you know you're connected.
+Two ways to test and see if the link works:
+
+  A) Manually run `sudo /rw/config/rc.local` before restarting. Firewall additions will not be in effect.
+
+  B) Re-start the VPN VM. Firewall additions will be active.
+
+  Either way, a status pop-up should appear letting you know you're connected.
+
 
 Step-by-step for any VPN client (permits troubleshooting)
 -
@@ -32,7 +39,8 @@ Step-by-step for any VPN client (permits troubleshooting)
 2. Create a /rw/config/vpn folder, place your VPN config file (openvpn-client.ovpn for example) there.
 3. Test the connection with a command like `sudo openvpn --cd  /rw/config/vpn --config openvpn-client.ovpn`. You should be able to ping the remote network through the VPN before proceeding... though its unlikely you will have DNS at this point.
 
- If you wish to test with DNS now, you can manually add your VPN's DNS addresses to `/etc/resolv.conf` and then run the `/usr/lib/qubes/qubes-setup-dnat-to-ns` script (make sure the VPN link is up first).
+If you wish to test with DNS now, you can manually add your VPN's DNS addresses to `/etc/resolv.conf` and then run the `/usr/lib/qubes/qubes-setup-dnat-to-ns` script (make sure the VPN link is up first).
+
 4. Adding script directives to the ovpn is no longer necessary; Normally you can proceed directly to Step 5.
 
 However, if your VPN service doesn't send DNS addresses via DHCP or if you need to set them another way, then assign the numbers you wish qubes-vpn-handler to use to the `vpn_dns` environment variable. For openvpn, add a setenv line to your config ovpn:
