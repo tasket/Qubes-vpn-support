@@ -1,6 +1,10 @@
 # Qubes-vpn-support
 Scripts for setting up secure VPN VMs in Qubes OS
 
+## Note: New template-installable version in `new-2` branch...
+
+--
+
 Objectives:
 -
 * Provide a **fail-closed** and transparent VPN environment that prevents leaks
@@ -17,7 +21,7 @@ Objectives:
 
 Quickstart for OpenVPN
 -
-Create a proxyVM to run the VPN client, and launch a CLI in it. As root, place Qubes-vpn-support files and subfolders in /rw/config. Then place your existing VPN config (*.ovpn) and related files in /rw/config/vpn and rename config file to `openvpn-client.ovpn`. Also populate the userpassword.txt file with your login info.
+Create a proxyVM to run the VPN client, and launch a CLI in it. As root, copy Qubes-vpn-support/rw/config files into /rw/config. Then place your existing VPN config (*.ovpn) and related files in /rw/config/vpn and rename config file to `openvpn-client.ovpn`. Also populate the userpassword.txt file with your login info.
 
 These files must be executable:
 ```
@@ -37,7 +41,7 @@ In the new VM, do the following as root (use `sudo`)...
 
 If you wish to test with DNS now, you can manually add your VPN's DNS addresses to `/etc/resolv.conf` and then run the `/usr/lib/qubes/qubes-setup-dnat-to-ns` script (make sure the VPN link is up first).
 
-4. Place Qubes-vpn-support files and subfolders in /rw/config and make scripts executable with:
+4. Copy Qubes-vpn-support/rw/config files into /rw/config and make scripts executable with:
 ```
 sudo chmod +x /rw/config/qubes-firewall-user-script /rw/config/rc.local /rw/config/vpn/qubes-vpn-ns
 ```
