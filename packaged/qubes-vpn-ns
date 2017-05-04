@@ -1,0 +1,75 @@
+#!/bin/bash
+
+########################################################################
+##  qubes-vpn-ns
+##
+## Handles DNS address translation and link notification for Qubes VPN VMs.
+## To use, set as 'up' and 'down' script with parameter in your VPN config.
+##
+## Automatically handles DHCP-generated addresses. Use 'vpn_dns' environment
+## var as override/alternative.
+## In openvpn config, format is: setenv vpn_dns 'X.X.X.X  Y.Y.Y.Y [...]'
+
+set -e
+export PATH="$PATH:/usr/sbin:/sbin"
+nspath=/var/run/qubes/qubes-vpn-ns
+
+# Corrects the 10.137.x.x nameserver IPs in FORWARD chain
+function fix-ips () {
+    [ -f $nspath ] || return 0
+    iptables-save -t filter >/tmp/qvpn-filter
+    read vpn_dns <$nspath ; nsend=1
+    for DNS in $vpn_dns; do
+        sed -i -r 's/(-A FORWARD.+-d )10\.137\.[0-9]+\.'$nsend'(\/.+--dport 53 -j ACCEPT)$/\1'$DNS'\2/' \
+/tmp/qvpn-filter
+        nsend=254
+    done
+    iptables-restore -T filter </tmp/qvpn-filter
+}
+
+case "$1" in
+fwupdate)
+    fix-ips
+;;
+
+'test-up')
+
+##  Use test-up parameter to test your basic VPN link before enabling firewall script
+##  (do NOT use beyond testing period). Type-in your nameserver address:
+    cp -a /etc/resolv.conf /etc/resolv.vpnbak
+    echo "nameserver TYPE-YOUR-DNS-ADDRESS-HERE" >/etc/resolv.conf
+    /usr/lib/qubes/qubes-setup-dnat-to-ns
+    su - -c 'notify-send "$(hostname): LINK IS UP." --icon=network-idle' user
+    exit 0
+
+;;
+up)
+    if [[ -z "$vpn_dns" ]] ; then
+        # Parses DHCP option variables to set DNS address translation:
+        for optionname in ${!foreign_option_*} ; do
+            option="${!optionname}"
+            unset fops; fops=($option)
+            if [ ${fops[1]} == "DNS" ] ; then vpn_dns="$vpn_dns ${fops[2]}" ; fi
+        done
+    fi
+
+    iptables -t nat -F PR-QBS
+    if [[ -n "$vpn_dns" ]] ; then
+        # Set DNS address translation in firewall:
+        for addr in $vpn_dns; do
+            iptables -t nat -A PR-QBS -i vif+ -p udp --dport 53 -j DNAT --to $addr
+            iptables -t nat -A PR-QBS -i vif+ -p tcp --dport 53 -j DNAT --to $addr
+        done
+        echo "$vpn_dns " >$nspath; fix-ips
+        su - -c 'notify-send "$(hostname): LINK IS UP." --icon=network-idle' user
+    else
+        su - -c 'notify-send "$(hostname): LINK UP, NO DNS!" --icon=dialog-error' user
+    fi
+
+    ;;
+down)
+    iptables -t nat -F PR-QBS
+    su - -c 'notify-send "$(hostname): LINK IS DOWN !" --icon=dialog-error' user
+
+    ;;
+esac

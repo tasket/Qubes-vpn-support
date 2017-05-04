@@ -1,0 +1,21 @@
+####################################################
+##  Qubes VPN Handler
+##
+
+[Unit]
+Description=VPN Client for Qubes proxyVM
+ConditionPathExists=!/var/run/qubes/this-is-templatevm
+ConditionPathExists=/rw/config/vpn
+After=syslog.target network.target qubes-firewall.service
+DefaultDependencies=false
+
+[Service]
+Group=qvpn
+PrivateTmp=true
+Type=forking
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+
