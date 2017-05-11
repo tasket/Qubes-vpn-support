@@ -6,8 +6,7 @@
 Description=VPN Client for Qubes proxyVM
 ConditionPathExists=!/var/run/qubes/this-is-templatevm
 ConditionPathExists=/rw/config/vpn
-After=syslog.target network.target qubes-firewall.service
-DefaultDependencies=false
+After=network.target qubes-firewall.service rw.mount
 
 [Service]
 Group=qvpn

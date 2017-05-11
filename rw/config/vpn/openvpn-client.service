@@ -7,7 +7,7 @@
 [Unit]
 Description=OpenVPN Client for Qubes
 ConditionPathExists=/rw/config/vpn
-After=syslog.target network.target qubes-firewall.service
+After=network.target qubes-firewall.service rw.mount
 
 [Service]
 Group=qvpn
@@ -20,6 +20,7 @@ ExecStart=/usr/sbin/openvpn --daemon --writepid /var/run/qubes/vpn-client.pid \
 --auth-user-pass userpassword.txt
 Restart=always
 RestartSec=10
+TimeoutStopSec=3
 
 [Install]
 WantedBy=multi-user.target
