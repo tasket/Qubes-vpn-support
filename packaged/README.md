@@ -1,10 +1,10 @@
 # Qubes VPN Support
 
-## Packaged version for systemd (no rc.local used)
+Packaged version for systemd (no rc.local used)
 
-## Install in Qubes template, for preliminary testing:
+## Install in Qubes template, for testing:
 ```
-cd Qubes-vpn-handler/packaged
+cd Qubes-vpn-support/packaged
 sudo bash ./install
 ```
 ...then shutdown template VM.
@@ -14,7 +14,7 @@ sudo bash ./install
 on first line and password on second line.
 2. (Optional) Test connection manually:
 ```
-sudo openvpn --cd /rw/config --config openvpn-client.ovpn --auth-user-pass userpassword.txt
+sudo openvpn --cd /rw/config/vpn --config openvpn-client.ovpn --auth-user-pass userpassword.txt
 ```
 3. Enable anti-leak firewall script:
 ```

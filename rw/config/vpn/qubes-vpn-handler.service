@@ -20,7 +20,7 @@ ExecStart=/usr/sbin/openvpn --daemon --writepid /var/run/qubes/vpn-client.pid \
 --auth-user-pass userpassword.txt
 Restart=always
 RestartSec=10
-TimeoutStopSec=3
+TimeoutStopSec=2
 
 [Install]
 WantedBy=multi-user.target
