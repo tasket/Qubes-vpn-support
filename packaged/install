@@ -1,0 +1,10 @@
+## Installs qubes-vpn-handler.service into template VM
+## Use 'sudo bash ./install' to run
+
+groupadd -rf qvpn
+cp -r qubes-vpn-handler.service* /lib/systemd/system
+systemctl enable qubes-vpn-handler.service
+cp proxy-firewall-restrict /usr/lib/qubes
+cp qubes-vpn-ns /usr/lib/qubes
+chmod +x /usr/lib/qubes/proxy-firewall-restrict /usr/lib/qubes/qubes-vpn-ns
+
