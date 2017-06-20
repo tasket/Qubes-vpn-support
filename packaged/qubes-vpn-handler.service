@@ -1,6 +1,7 @@
-####################################################
+##########################################################
 ##  Qubes VPN Handler
 ##
+##  See qubes-vpn-handler.service.d for specific clients
 
 [Unit]
 Description=VPN Client for Qubes proxyVM

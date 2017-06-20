@@ -37,7 +37,7 @@ Step-by-step for any VPN client (helps troubleshooting)
 In the new VM, do the following as root (use `sudo`)...
 
 2. Place your existing VPN config (*.ovpn) and related files in /rw/config/vpn and rename config file to `openvpn-client.ovpn`. Place your VPN login credentials in the userpassword.txt file.
-3. Test the connection with a command like `sudo openvpn --cd  /rw/config/vpn --config openvpn-client.ovpn`. You should be able to ping the remote network through the VPN before proceeding... though its unlikely you will have DNS at this point.
+3. Test the connection with a command like `sudo openvpn --cd  /rw/config/vpn --config openvpn-client.ovpn --auth-user-pass userpassword.txt`. You should be able to ping the remote network through the VPN before proceeding... though its unlikely you will have DNS at this point.
 
 If you wish to test with DNS now, you can manually add your VPN's DNS addresses to `/etc/resolv.conf` and then run the `/usr/lib/qubes/qubes-setup-dnat-to-ns` script (make sure the VPN link is up first).
 
@@ -57,7 +57,7 @@ However, if your VPN service doesn't send DNS addresses via DHCP or if you need 
 
   B) Re-start the VPN VM. Firewall additions will be active.
 
-  Either way, a status pop-up should appear letting you know you're connected.
+  Either way, a status pop-up should appear letting you know you're connected. Once rc.local creates the service, `systemctl` may be used for usual operations like start, stop, status, etc.
 
 Regular usage is simple: Just link other VMs to the VPN VM and start them!
 
