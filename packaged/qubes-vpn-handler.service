@@ -12,7 +12,6 @@ After=network.target qubes-firewall.service rw.mount
 [Service]
 Group=qvpn
 PrivateTmp=true
-Type=forking
 Restart=always
 RestartSec=10
 

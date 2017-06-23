@@ -53,7 +53,7 @@ up)
         done
     fi
 
-    iptables -t nat -F PR-QBS; rm $nspath
+    iptables -t nat -F PR-QBS
     if [[ -n "$vpn_dns" ]] ; then
         # Set DNS address translation in firewall:
         for addr in $vpn_dns; do

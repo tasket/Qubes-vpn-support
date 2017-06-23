@@ -2,40 +2,41 @@
 
 ########################################################################
 ##
-##  qubes-firewall-user-script for use with a VPN client such as openvpn.
-##
+##  proxy-firewall-restrict / qubes-firewall-user-script
+##  Configure Qubes firewall for use with a tunnel such as OpenVPN.
 ##
 
 iptables -P INPUT DROP
 iptables -P FORWARD DROP
-iptables -P OUTPUT DROP
-iptables -F OUTPUT
 
 # Stop all leaks between downstream (AppVMs) and upstream (Internet):
 iptables -I FORWARD -o eth0 -j DROP
 iptables -I FORWARD -i eth0 -j DROP
 
-# Add qvpn group and wait for change
-if ! grep -q "^qvpn:" /etc/group ; then
-    groupadd -rf qvpn
-    sync
-fi
-sleep 2s
+## Add qvpn group and wait for change
+## Not used in packaged version
+#if ! grep -q "^qvpn:" /etc/group ; then
+#    groupadd -rf qvpn
+#    sync
+#fi
+#sleep 2s
 
 # Prevent accidental communications from within VPN VM;
-# The gid-owner rule requires the VPN client be run with group ID 'qvpn'
-# to allow outbound traffic from the client.
+# The gid-owner rule requires net programs be run with group ID 'qvpn'
+# to allow outbound traffic.
+iptables -P OUTPUT DROP
+iptables -F OUTPUT
 iptables -A OUTPUT -o lo -j ACCEPT
 iptables -A OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -m state --state NEW,ESTABLISHED -j ACCEPT
 
-# Block INPUT from downstream and the tunnel:
+# Block INPUT from tunnel:
 iptables -I INPUT -i tun0 -j DROP
 # Disable icmp packets
 #if iptables -C INPUT -p icmp -j ACCEPT
 #then iptables -D INPUT -p icmp -j ACCEPT
 #fi
 
-# Block all IPv6 traffic (generally unsupported in Qubes):
+# Block all IPv6 traffic (generally unsupported in Qubes 3.x):
 ip6tables -P OUTPUT DROP
 ip6tables -F OUTPUT
 ip6tables -P FORWARD DROP

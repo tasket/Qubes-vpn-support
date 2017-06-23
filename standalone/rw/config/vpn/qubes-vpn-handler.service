@@ -6,21 +6,17 @@
 
 [Unit]
 Description=OpenVPN Client for Qubes
-ConditionPathExists=/rw/config/vpn
-After=network.target qubes-firewall.service rw.mount
+#After=network.target qubes-firewall.service rw.mount
 
 [Service]
 Group=qvpn
 PrivateTmp=true
-Type=forking
-PIDFile=/var/run/qubes/vpn-client.pid
-ExecStart=/usr/sbin/openvpn --daemon --writepid /var/run/qubes/vpn-client.pid \
---cd /rw/config/vpn/ --config openvpn-client.ovpn \
+ExecStart=/usr/sbin/openvpn --cd /rw/config/vpn/ --config openvpn-client.ovpn \
 --script-security 2 --up "qubes-vpn-ns up" --down "qubes-vpn-ns down" \
 --auth-user-pass userpassword.txt
 Restart=always
 RestartSec=10
 TimeoutStopSec=2
 
-[Install]
-WantedBy=multi-user.target
+#[Install]
+#WantedBy=multi-user.target
