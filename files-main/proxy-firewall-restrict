@@ -7,24 +7,8 @@
 ##
 
 
-# Corrects the 10.137.x.x nameserver IPs in FORWARD chain and sets nat
-nspath=/var/run/qubes/qubes-vpn-ns
-if [ -f $nspath ]; then
-    iptables-save -t filter >/tmp/qvpn-filter
-    read vpn_dns <$nspath ; nsend=1
-    for DNS in $vpn_dns; do
-        sed -i -r 's/(-A FORWARD.+-d )10\.137\.[0-9]+\.'$nsend'(\/.+--dport 53 -j ACCEPT)$/\1'$DNS'\2/' \
-/tmp/qvpn-filter
-        nsend=254
-    done
-    iptables-restore -T filter </tmp/qvpn-filter
-    iptables -t nat -F PR-QBS
-    # Set DNS address translation in firewall:
-    for addr in $vpn_dns; do
-        iptables -t nat -A PR-QBS -i vif+ -p udp --dport 53 -j DNAT --to $addr
-        iptables -t nat -A PR-QBS -i vif+ -p tcp --dport 53 -j DNAT --to $addr
-    done
-fi
+qservice=`find /var/run/qubes-service -name 'vpn-handler*'`
+[ -n "$qservice" ] || exit 0
 
 
 # Set firewall restriction policy
@@ -36,24 +20,39 @@ iptables -I FORWARD -o eth0 -j DROP
 iptables -I FORWARD -i eth0 -j DROP
 
 
-# Setup net isolation for local programs;
+# Correct the 10.137.x.x nameserver IPs in FORWARD chain and set nat
+nspath=/var/run/qubes/qubes-vpn-ns
+if [ -f $nspath ]; then
+    iptables-save -t filter >/tmp/qvpn-fw-filter
+    read vpn_dns <$nspath ; nsend=1
+    for DNS in $vpn_dns; do
+        sed -i -r 's/(-A FORWARD.+-d )10\.137\.[0-9]+\.'$nsend'(.+dport 53 -j ACCEPT)$/\1'$DNS'\2/' \
+/tmp/qvpn-fw-filter
+        nsend=254
+    done
+    iptables-restore -T filter </tmp/qvpn-fw-filter
+    iptables -t nat -F PR-QBS
+    # Set DNS address translation in firewall:
+    for addr in $vpn_dns; do
+        iptables -t nat -A PR-QBS -i vif+ -p udp --dport 53 -j DNAT --to $addr
+        iptables -t nat -A PR-QBS -i vif+ -p tcp --dport 53 -j DNAT --to $addr
+    done
+fi
+
+
 # Lines past this point are optional...
 
-# Add qvpn group and wait for change
-# Not used in packaged version
-if ! grep -q "^qvpn:" /etc/group ; then
-    groupadd -rf qvpn
-    sync
-fi
-sleep 2s
 
-# Prevent accidental communications from within VPN VM;
+# Prevent accidental communications from within VPN VM to net;
 # The gid-owner rule requires net programs be run with group ID 'qvpn'
 # to allow outbound traffic.
+groupadd -rf qvpn && sync
 iptables -P OUTPUT DROP
 iptables -F OUTPUT
 iptables -A OUTPUT -o lo -j ACCEPT
-iptables -A OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -p all -o eth0 -m owner --gid-owner qvpn \
+-m state --state NEW,ESTABLISHED -j ACCEPT
+
 
 # Block INPUT from tunnel:
 iptables -I INPUT -i tun0 -j DROP
@@ -61,6 +60,7 @@ iptables -I INPUT -i tun0 -j DROP
 #if iptables -C INPUT -p icmp -j ACCEPT
 #then iptables -D INPUT -p icmp -j ACCEPT
 #fi
+
 
 # Block all IPv6 traffic (generally unsupported in Qubes 3.x):
 ip6tables -P OUTPUT DROP

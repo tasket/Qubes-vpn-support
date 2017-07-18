@@ -1,0 +1,71 @@
+#!/bin/bash
+
+## Installs qubes-vpn-handler.service into template or proxyVM
+## Use 'sudo bash ./install' to run
+
+set -e
+[ `id -u` -eq 0 ] || exit 1
+if ! cd files-main ; then exit 1; fi
+
+./qubes-vpn-setup --install
+
+################################
+exit 0
+################################
+
+
+
+
+. /usr/lib/qubes/init/functions
+do_userpass () {
+    uppath=/rw/config/vpn/userpassword.txt
+    echo
+    read -p "VPN username: " username
+    echo "$username" >$uppath
+    read -s -p "VPN password: " upassword
+    echo
+    echo "$upassword" >>$uppath
+    chmod 600 $uppath
+    echo "Login info saved to $uppath"
+}
+
+
+
+if [ "$1" = "--stage2" ] && is_proxyvm ; then
+    mkdir -p /rw/config/vpn
+    ln -s -f /usr/lib/qubes/proxy-firewall-restrict \
+/rw/config/qubes-firewall-user-script
+    do_userpass
+    exit 0
+fi
+
+
+if ! cd files-main ; then exit 1; fi
+chown -R root:root *
+chmod +x rc.local qubes-vpn-ns qubes-vpn-askpass proxy-firewall-restrict
+
+if is_templatevm ; then
+    echo "Install into templateVM..."
+    groupadd -rf qvpn
+    cp -a qubes-vpn-handler.service* /lib/systemd/system
+    sync; sleep 2s; systemctl daemon-reload
+    systemctl enable qubes-vpn-handler.service
+    cp -a qubes-vpn-ns qubes-vpn-askpass proxy-firewall-restrict \
+-t /usr/lib/qubes
+    echo "Done!"
+
+elif is_proxyvm ; then
+    echo -n "Isolated install for proxyVM..."
+    cp -a vpn rc.local qubes-vpn-handler.service* qubes-vpn-askpass \
+qubes-vpn-ns proxy-firewall-restrict -t /rw/config
+    ln -s -f /rw/config/proxy-firewall-restrict \
+/rw/config/qubes-firewall-user-script
+    echo "copy complete."
+    do_userpass
+    echo "Done!"
+
+else
+    echo "No appropriate VM type; Exiting."
+    exit 1
+fi
+

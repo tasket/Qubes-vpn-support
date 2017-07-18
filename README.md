@@ -1,26 +1,45 @@
 # Qubes-vpn-support
-Scripts for setting up secure VPN VMs in Qubes OS
-
-This utility comes in two flavors:
-    1. 'Packaged' can be installed into a template VM
-    2. 'Standalone' lives entirely in a proxyVM's '/rw/config' folder
-
-See README under corresponding folder for quickstart setup guide.
-
---
+Secure VPN VMs in Qubes OS
 
 Objectives:
 -
 * Provide a **fail-closed** and transparent VPN environment that prevents leaks
+* Choice of template or proxyVM-only installations
 * Isolate the VPN client within a dedicated Proxy VM; leverage Qubes architecture
+* Isolate local VPN VM programs from network
 * Easy setup: support server names, minimal file editing
   * Uses configuration files from VPN service provider
-  * Only rename VPN client config & create user/password file
   * Explicit IP addresses not necessary
-  * __Less risk of configuration errors__
-* Prevent access to local VPN VM programs, from downstream and upstream
-* Prevent accidental clearnet and tunnel access from within the VPN VM
+  * Less risk of configuration errors
 
+---
+
+Quickstart setup guide
+-
+1. Create a proxyVM using a template with VPN/tunnel software installed (i.e. OpenVPN), then add `vpn-handler-openvpn` to the proxyVM's VM Settings / Services tab.
+
+2. Transfer Qubes-vpn-support folder to the template or proxy VM of your choice, then run install. This will also prompt for your VPN login credentials either in this step (proxyVM) or next step (template):
+```
+cd Qubes-vpn-support
+sudo bash ./install
+```
+3. If installed to a template, shutdown the templateVM then start the proxyVM and finish setup with:
+```
+sudo /usr/lib/qubes/qubes-vpn-setup --stage2
+```
+
+4. Copy the VPN config files from your service provider to the proxyVM's /rw/config/vpn folder, then copy or link the desired config to 'openvpn-client.ovpn':
+```
+cd /rw/config/vpn
+sudo unzip ~/ovpn-configs-example.zip
+sudo ln -s US_East.ovpn openvpn-client.ovpn
+```
+
+Restart the proxyVM; This will start the VPN client and you should see a popup notification that the connection is "UP"!
+
+Regular usage is simple: Just link other VMs to the VPN VM and start them!
+
+---
 
 Operating system support
 -
@@ -28,9 +47,20 @@ Qubes-vpn-support is tested to run on Debian 8, Debian 9 and Fedora 25 template-
 
 OpenVPN notes
 -
-The service config assumes the client will authenticate to the server using a username/password combination. It is also assumed that 'tun' mode will be used by the ovpn config, although it is possible that 'tap' may work.
+The service config assumes the client will authenticate to the server using a username/password combination. It is also assumed that 'tun' mode will be used by the VPN as this is the most common.
 
+Troubleshooting:
 Some OpenVPN versions have difficulty with the 'persist tun' option; commenting it out can resolve some connection problems.
+
+Connections can be directly tested with a command like `sudo openvpn --cd  /rw/config/vpn --config openvpn-client.ovpn --auth-user-pass userpassword.txt` but using `systemctl status` and similar commands also work with normal auto-started connections. You should be able to use `ping` from a downstream appVM.
+
+You can manually set your VPN's DNS addresses with:
+```
+export vpn_dns="<dns addresses>"
+sudo /rw/config/vpn/qubes-vpn-ns up
+```
+
+Firewall __output__ restrictions can be temporarily disabled with `iptables -P OUTPUT ACCEPT` which will permit clearnet access to other programs in the VPN VM.
 
 Tor/Whonix notes
 -
@@ -38,9 +68,9 @@ Qubes-vpn-support can handle either Tor-over-VPN (configuring sys-whonix `netvm`
 
 Using clients other than OpenVPN
 -
-The main issue with using another client is how you run it. For standalone configs, you can add a systemd .service file to /rw/config/vpn and adjust rc.local to use that instead. See the supplied .service file as an example of running under the `qvpn` group. For packaged/template configs, adding a .conf file to the existing service is sufficient (see README in packaged folder).
+The main issue with using another client is how you run it. For standalone configs, you can add a systemd .service file to /rw/config/vpn and adjust rc.local to use that instead. See the supplied .service file as an example of running under the `qvpn` group. For template installations, adding a .conf file under /lib/systemd/system/qubes-vpn-handler.d is sufficient.
 
-Passing the DNS addresses to `qubes-vpn-ns` is another issue: If your client doesn't automatically pass `foreign_option` vars in the same format as openvpn, then use the `vpn_dns` environment variable as explained in the script comments. This may also be set by supplying DNS addresses in quotes as the second argument to `qubes-vpn-ns`.
+Passing the DNS addresses to `qubes-vpn-ns` is another issue: If your client doesn't automatically pass `foreign_option` vars in the same format as openvpn, then use the `vpn_dns` environment variable as explained in the script comments.
 
 Since it is the job of a VPN vendor to focus tightly on __link__ security, you should be wary of VPN clients that try to manipulate iptables directly to secure the system's overall communicatios profile; It is unlikely they take Qubes' network topology into account. Normally, security should be added to a VPN setup from the OS or specialty scripts (like these) or by the admins and users themselves.
 
@@ -57,17 +87,17 @@ Notes on qubes-vpn-ns
 -
 This handler script is tested to work with OpenVPN v2.3 and v2.4, but should be easily adaptable to other VPN clients with one or two variable-handling changes.
 
-DNS addresses are automatically acquired from DHCP without altering the local resolv.conf settings. This is intended as a privacy measure to prevent any inadvertant access by local (VPN VM) programs over the VPN tunnel.
+DNS addresses are automatically acquired from DHCP without altering the local resolv.conf settings, so the VPN's DNS is normally only available to attached downstream VMs. This is intended as a privacy measure to prevent any inadvertant access by local (VPN VM) programs over the VPN tunnel.
 
 Roles
 --
 * The VPN VM is generally trusted. It is assumed its programs won't try to impersonate openvpn (send data via port 1194), for example.
-* Everything outside the VPN VM and VPN server is essentially untrusted (from the VPN client's point of view): This means the sys-net, local router, ISP and downstream vms are potential threats. (This doesn't affect the users POV of whether individual appvms are trusted.)
+* Everything outside the VPN VM and VPN server is essentially untrusted (from the VPN client's point of view): This means the sys-net, local router, ISP and downstream VMs are potential threats. (This doesn't affect the users POV of whether individual appVMs are trusted.)
 * Everything that is downstream from VPN VM communicates through the VPN tunnel only.
 * The purpose of the programs in the VPN VM is to support the creation of the VPN link. Their net access is either null or clearnet only; they should not send packets through the VPN tunnel and potentially get published.
 * Configuration of the VPN client details (server address, protocols, etc) should be downloaded from the VPN provider's support page; the user can simply drop the config file into the /rw/config/vpn folder and rename it.
 
 Future
 -
-* Possibly add systray icon for VPN status and control
-
+* Add systray icon for VPN status and control
+* Provisioning through packages and Saltstack
