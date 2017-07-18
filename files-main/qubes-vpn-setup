@@ -10,15 +10,16 @@ do_userpass () {
     read -s -p "VPN password: " upassword
     echo
     echo
-    echo "$username" >$tmppath
-    echo "$upassword" >>$tmppath
-    chmod 600 $tmppath
-    read -N 1 -p "Save login info (Y/N)? " answer
-    if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+    echo "$username" >$tmppath.tmp
+    echo "$upassword" >>$tmppath.tmp
+    chmod 600 $tmppath.tmp
+    mv $tmppath.tmp $tmppath
+#    read -N 1 -p "Save login info (Y/N)? " answer
+#    if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
         cp -a $tmppath $uppath
         echo -e "\nLogin info saved to $uppath"
         sleep 1s
-    fi
+#    fi
     echo
 }
 
@@ -37,7 +38,9 @@ case "$1" in
         systemctl enable qubes-vpn-handler.service
         cp -a qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict \
     -t /usr/lib/qubes
-        echo "Done!"
+        echo "Almost done..."
+        echo "Next, shutdown this template then start proxyVM and run:"
+        echo "sudo /usr/lib/qubes/qubes-vpn-setup --stage2"
 
     elif is_proxyvm ; then
         echo -n "Isolated install for proxyVM..."
@@ -67,16 +70,17 @@ case "$1" in
 --userpass)
     if [ ! -f $uppath ]; then
         if [ ! -f /tmp/qvpn-askpass ]; then
-            touch /tmp/qvpn-askpass
-            systemd-run -E DISPLAY=:0 'sleep 3s; /usr/bin/xterm -T "VPN Login" \
--e /usr/lib/qubes/qubes-vpn-setup --xterm'
+            systemd-run -E DISPLAY=:0 sh -c 'sleep 2s; /usr/bin/xterm \
+-T "VPN Login" -e /usr/lib/qubes/qubes-vpn-setup --xterm'
         fi
     else
-        cp -a $uppath $tmppath
+        cp -a $uppath $tmppath.tmp
+        mv $tmppath.tmp $tmppath
     fi
 ;;
 
 --xterm)
+    touch /tmp/qvpn-askpass
     do_userpass
 ;;
 esac

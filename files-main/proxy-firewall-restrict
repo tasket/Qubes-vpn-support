@@ -7,6 +7,7 @@
 ##
 
 
+groupadd -rf qvpn && sync
 qservice=`find /var/run/qubes-service -name 'vpn-handler*'`
 [ -n "$qservice" ] || exit 0
 
@@ -43,23 +44,22 @@ fi
 # Lines past this point are optional...
 
 
-# Prevent accidental communications from within VPN VM to net;
-# The gid-owner rule requires net programs be run with group ID 'qvpn'
-# to allow outbound traffic.
-groupadd -rf qvpn && sync
-iptables -P OUTPUT DROP
-iptables -F OUTPUT
-iptables -A OUTPUT -o lo -j ACCEPT
-iptables -A OUTPUT -p all -o eth0 -m owner --gid-owner qvpn \
--m state --state NEW,ESTABLISHED -j ACCEPT
-
-
 # Block INPUT from tunnel:
 iptables -I INPUT -i tun0 -j DROP
 # Disable icmp packets
 #if iptables -C INPUT -p icmp -j ACCEPT
 #then iptables -D INPUT -p icmp -j ACCEPT
 #fi
+
+
+# Prevent accidental communications from within VPN VM to net;
+# The gid-owner rule requires net programs be run with group ID 'qvpn'
+# to allow outbound traffic.
+iptables -P OUTPUT DROP
+iptables -F OUTPUT
+iptables -A OUTPUT -o lo -j ACCEPT
+iptables -A OUTPUT -p all -o eth0 -m owner --gid-owner qvpn \
+-m state --state NEW,ESTABLISHED -j ACCEPT
 
 
 # Block all IPv6 traffic (generally unsupported in Qubes 3.x):
