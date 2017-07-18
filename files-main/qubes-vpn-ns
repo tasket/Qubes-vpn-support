@@ -40,7 +40,6 @@ up)
         echo "$vpn_dns " >$nspath
         echo "Using DNS servers $vpn_dns"
         # Securely async restart firewall with new config
-        for x in INPUT OUTPUT FORWARD; do iptables -I $x -p all -j DROP; done
         systemctl restart qubes-firewall
         su - -c 'notify-send "$(hostname): LINK IS UP." --icon=network-idle' user
     else
