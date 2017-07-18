@@ -23,7 +23,7 @@ do_userpass () {
 }
 
 case "$1" in
-'--install')
+--install)
 
     if [ ! -d vpn ]; then exit 1; fi
     chown -R root:root *
@@ -55,7 +55,7 @@ case "$1" in
     fi
 ;;
 
-'--stage2')
+--stage2)
     if is_proxyvm ; then
         mkdir -p /rw/config/vpn
         ln -s -f /usr/lib/qubes/proxy-firewall-restrict \
@@ -64,22 +64,20 @@ case "$1" in
     fi
 ;;
 
-'--userpass')
+--userpass)
     if [ ! -f $uppath ]; then
-        if [ ! "$1" = "--xterm" ]; then
-            if [ ! -f /tmp/qvpn-askpass ]; then
-                touch /tmp/qvpn-askpass
-    #            sleep 2s
-                systemd-run -E DISPLAY=:0 'sleep 3s; /usr/bin/xterm -T "VPN Login" \
-    -e /usr/lib/qubes/qubes-vpn-setup --xterm'
-            fi
-            exit 0
-        else
-            do_userpass
+        if [ ! -f /tmp/qvpn-askpass ]; then
+            touch /tmp/qvpn-askpass
+            systemd-run -E DISPLAY=:0 'sleep 3s; /usr/bin/xterm -T "VPN Login" \
+-e /usr/lib/qubes/qubes-vpn-setup --xterm'
         fi
     else
         cp -a $uppath $tmppath
     fi
+;;
+
+--xterm)
+    do_userpass
 ;;
 esac
 
