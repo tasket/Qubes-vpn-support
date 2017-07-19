@@ -40,7 +40,7 @@ case "$1" in
     -t /usr/lib/qubes
         echo "Almost done..."
         echo "Next, shutdown this template then start proxyVM and run:"
-        echo "sudo /usr/lib/qubes/qubes-vpn-setup --stage2"
+        echo "sudo /usr/lib/qubes/qubes-vpn-setup --config"
 
     elif is_proxyvm ; then
         echo -n "Isolated install for proxyVM..."
@@ -58,7 +58,7 @@ case "$1" in
     fi
 ;;
 
---stage2)
+--config)
     if is_proxyvm ; then
         mkdir -p /rw/config/vpn
         ln -s -f /usr/lib/qubes/proxy-firewall-restrict \
