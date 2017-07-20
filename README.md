@@ -19,6 +19,7 @@ Features
 
 ### Releases:
 v1.3 beta, July 2017
+
 v1.0.2, June 2016
 
 ---
