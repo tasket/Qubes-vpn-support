@@ -1,0 +1,12 @@
+#!/bin/bash
+
+## Installs qubes-vpn-handler.service into template or proxyVM
+## Use 'sudo bash ./install' to run
+
+set -e
+[ `id -u` -eq 0 ] || exit 1
+if ! cd files-main ; then exit 1; fi
+
+bash ./qubes-vpn-setup --install
+
+exit 0

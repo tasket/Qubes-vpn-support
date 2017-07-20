@@ -1,0 +1,87 @@
+#!/bin/bash
+[ `id -u` -eq 0 ] || exit 1
+. /usr/lib/qubes/init/functions
+uppath=/rw/config/vpn/userpassword.txt
+tmppath="/tmp/"`basename $uppath`
+
+do_userpass () {
+    echo
+    read -p  "VPN username: " username
+    read -s -p "VPN password: " upassword
+    echo
+    echo
+    echo "$username" >$tmppath.tmp
+    echo "$upassword" >>$tmppath.tmp
+    chmod 600 $tmppath.tmp
+    mv $tmppath.tmp $tmppath
+#    read -N 1 -p "Save login info (Y/N)? " answer
+#    if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+        cp -a $tmppath $uppath
+        echo -e "\nLogin info saved to $uppath"
+        sleep 1s
+#    fi
+    echo
+}
+
+case "$1" in
+--install)
+
+    if [ ! -d vpn ]; then exit 1; fi
+    chown -R root:root *
+    chmod +x rc.local qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict
+
+    if is_templatevm ; then
+        echo "Install into templateVM..."
+        groupadd -rf qvpn
+        cp -a qubes-vpn-handler.service* /lib/systemd/system
+        sync; sleep 2s; systemctl daemon-reload
+        systemctl enable qubes-vpn-handler.service
+        cp -a qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict \
+    -t /usr/lib/qubes
+        echo "Almost done..."
+        echo "Next, shutdown this template then start proxyVM and run:"
+        echo "sudo /usr/lib/qubes/qubes-vpn-setup --config"
+
+    elif is_proxyvm ; then
+        echo -n "Isolated install for proxyVM..."
+        cp -a vpn rc.local qubes-vpn-handler.service* qubes-vpn-setup \
+    qubes-vpn-ns proxy-firewall-restrict -t /rw/config
+        ln -s -f /rw/config/proxy-firewall-restrict \
+    /rw/config/qubes-firewall-user-script
+        echo "copy complete."
+        do_userpass
+        echo "Done!"
+
+    else
+        echo "No appropriate VM type; Exiting."
+        exit 1
+    fi
+;;
+
+--config)
+    if is_proxyvm ; then
+        mkdir -p /rw/config/vpn
+        ln -s -f /usr/lib/qubes/proxy-firewall-restrict \
+    /rw/config/qubes-firewall-user-script
+        do_userpass
+    fi
+;;
+
+--userpass)
+    if [ ! -f $uppath ]; then
+        if [ ! -f /tmp/qvpn-askpass ]; then
+            systemd-run -E DISPLAY=:0 sh -c 'sleep 2s; /usr/bin/xterm \
+-T "VPN Login" -e /usr/lib/qubes/qubes-vpn-setup --xterm'
+        fi
+    else
+        cp -a $uppath $tmppath.tmp
+        mv $tmppath.tmp $tmppath
+    fi
+;;
+
+--xterm)
+    touch /tmp/qvpn-askpass
+    do_userpass
+;;
+esac
+

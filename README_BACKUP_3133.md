@@ -1,5 +1,13 @@
 # Qubes-vpn-support
 Secure VPN VMs in Qubes OS
+<<<<<<< HEAD
+
+# New Beta version July 2017!
+[See new-2 branch](https://github.com/tasket/Qubes-vpn-support/tree/new-2)
+
+---
+=======
+>>>>>>> new-2
 
 Objectives:
 -
