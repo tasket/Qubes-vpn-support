@@ -1,20 +1,25 @@
 # Qubes-vpn-support
 Secure VPN VMs in Qubes OS
 
-Objectives:
+Features
 -
 * Provide a **fail-closed**, anti-leak VPN environment
 * Isolate the VPN client within a dedicated Proxy VM
 * Isolate local VPN VM programs from network
 
-### Easy setup:
+### Easy setup
   * Fully supports server names; IP addresses not necessary
   * Uses configuration files from VPN service provider
   * Less risk of configuration errors
 
-### New in this version:
+### New in this version (v1.3 beta)
   * Simple install script; No file editing
-  * Flexible: Choice of installation into template or to proxyVM-only
+  * Separate firewall not required (Qubes 'Deny except' works)
+  * Flexible installation into template or to proxyVM-only
+
+### Releases:
+v1.3 beta, July 2017
+v1.0.2, June 2016
 
 ---
 
