@@ -21,23 +21,21 @@ iptables -I FORWARD -o eth0 -j DROP
 iptables -I FORWARD -i eth0 -j DROP
 
 
-# Correct the 10.137.x.x nameserver IPs in FORWARD chain and set nat
+# Correct the 10.137.x.x nameserver IPs in FORWARD chain and set dnat
+. /var/run/qubes/qubes-ns
 nspath=/var/run/qubes/qubes-vpn-ns
 if [ -f $nspath ]; then
     iptables-save -t filter >/tmp/qvpn-fw-filter
-    read vpn_dns <$nspath ; nsend=1
+    iptables -t nat -F PR-QBS
+    read vpn_dns <$nspath ; q_addr=$NS1 ; nsend=1
     for DNS in $vpn_dns; do
-        sed -i -r 's/(-A FORWARD.+-d )10\.137\.[0-9]+\.'$nsend'(.+dport 53 -j ACCEPT)$/\1'$DNS'\2/' \
+        sed -i -r 's/(-A FORWARD.+-d )10\.137\.[0-9]\.'$nsend'(.+dport 53 -j ACCEPT)$/\1'$DNS'\2/' \
 /tmp/qvpn-fw-filter
-        nsend=254
+        iptables -t nat -A PR-QBS -d $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
+        iptables -t nat -A PR-QBS -d $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
+        q_addr=$NS2 ; nsend=254
     done
     iptables-restore -T filter </tmp/qvpn-fw-filter
-    iptables -t nat -F PR-QBS
-    # Set DNS address translation in firewall:
-    for addr in $vpn_dns; do
-        iptables -t nat -A PR-QBS -i vif+ -p udp --dport 53 -j DNAT --to $addr
-        iptables -t nat -A PR-QBS -i vif+ -p tcp --dport 53 -j DNAT --to $addr
-    done
 fi
 
 
@@ -58,8 +56,7 @@ iptables -I INPUT -i tun0 -j DROP
 iptables -P OUTPUT DROP
 iptables -F OUTPUT
 iptables -A OUTPUT -o lo -j ACCEPT
-iptables -A OUTPUT -p all -o eth0 -m owner --gid-owner qvpn \
--m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -j ACCEPT
 
 
 # Block all IPv6 traffic (generally unsupported in Qubes 3.x):
