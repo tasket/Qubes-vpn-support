@@ -29,7 +29,7 @@ if [ -f $nspath ]; then
     iptables -t nat -F PR-QBS
     read vpn_dns <$nspath ; q_addr=$NS1 ; nsend=1
     for DNS in $vpn_dns; do
-        sed -i -r 's/(-A FORWARD.+-d )10\.137\.[0-9]\.'$nsend'(.+dport 53 -j ACCEPT)$/\1'$DNS'\2/' \
+        sed -i -r 's/(-A FORWARD.+-d )10\.137\.[0-9]+\.'$nsend'(.+dport 53 -j ACCEPT)$/\1'$DNS'\2/' \
 /tmp/qvpn-fw-filter
         iptables -t nat -A PR-QBS -d $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
         iptables -t nat -A PR-QBS -d $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
