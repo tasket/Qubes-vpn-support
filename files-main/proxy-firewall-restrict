@@ -9,41 +9,54 @@
 
 groupadd -rf qvpn && sync
 qservice=`find /var/run/qubes-service -name 'vpn-handler*'`
-[ -n "$qservice" ] || exit 0
+##[ -n "$qservice" ] || exit 0
 
+correct_ips() {
+    # Correct the 10.137.x.x nameserver IPs in FORWARD chain (Qubes 3.x)
+    . /var/run/qubes/qubes-ns
+    nspath=/var/run/qubes/qubes-vpn-ns
+    if [ -f $nspath ]; then
+        iptables-save -t filter >/tmp/qvpn-fw-filter
+        read vpn_dns <$nspath ; nsend=1
+        for DNS in $vpn_dns; do
+            sed -i -r 's/(-A FORWARD.+-d )10\.137\.[0-9]+\.'$nsend'(.+dport 53 -j ACCEPT)$/\1'$DNS'\2/' \
+                /tmp/qvpn-fw-filter
+            nsend=254
+        done
+        iptables-restore -T filter </tmp/qvpn-fw-filter
+    fi
+}
 
 # Set firewall restriction policy
 iptables -P INPUT DROP
 iptables -P FORWARD DROP
+iptables -P OUTPUT DROP
 
-# Stop all leaks between downstream (AppVMs) and upstream (Internet):
+ip6tables -P INPUT DROP
+ip6tables -P FORWARD DROP
+ip6tables -P OUTPUT DROP
+
+# Stop all leaks between downstream (vif+) and upstream (Internet eth0):
 iptables -I FORWARD -o eth0 -j DROP
 iptables -I FORWARD -i eth0 -j DROP
 
+ip6tables -I FORWARD -o eth0 -j DROP
+ip6tables -I FORWARD -i eth0 -j DROP
 
-# Correct the 10.137.x.x nameserver IPs in FORWARD chain and set dnat
-. /var/run/qubes/qubes-ns
-nspath=/var/run/qubes/qubes-vpn-ns
-if [ -f $nspath ]; then
-    iptables-save -t filter >/tmp/qvpn-fw-filter
-    iptables -t nat -F PR-QBS
-    read vpn_dns <$nspath ; q_addr=$NS1 ; nsend=1
-    for DNS in $vpn_dns; do
-        sed -i -r 's/(-A FORWARD.+-d )10\.137\.[0-9]+\.'$nsend'(.+dport 53 -j ACCEPT)$/\1'$DNS'\2/' \
-/tmp/qvpn-fw-filter
-        iptables -t nat -A PR-QBS -d $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
-        iptables -t nat -A PR-QBS -d $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
-        q_addr=$NS2 ; nsend=254
-    done
-    iptables-restore -T filter </tmp/qvpn-fw-filter
-fi
+# Fix DNS IPs if QBS-FORWARD not present (Qubes ver < 4)
+iptables -L QBS-FORWARD || correct_ips
 
 
 # Lines past this point are optional...
 
 
-# Block INPUT from tunnel:
-iptables -I INPUT -i tun0 -j DROP
+# Block INPUT from tunnel(s):
+iptables -I INPUT -i tun+ -j DROP
+ip6tables -I INPUT -i tun+ -j DROP
+# Allow established v6 traffic (v4 rule already present):
+#iptables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
+ip6tables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
+
 # Disable icmp packets
 #if iptables -C INPUT -p icmp -j ACCEPT
 #then iptables -D INPUT -p icmp -j ACCEPT
@@ -53,17 +66,9 @@ iptables -I INPUT -i tun0 -j DROP
 # Prevent accidental communications from within VPN VM to net;
 # The gid-owner rule requires net programs be run with group ID 'qvpn'
 # to allow outbound traffic.
-iptables -P OUTPUT DROP
-iptables -F OUTPUT
-iptables -A OUTPUT -o lo -j ACCEPT
-iptables -A OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -j ACCEPT
+iptables -I OUTPUT -o lo -j ACCEPT
+iptables -I OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -j ACCEPT
 
-
-# Block all IPv6 traffic (generally unsupported in Qubes 3.x):
-ip6tables -P OUTPUT DROP
-ip6tables -F OUTPUT
-ip6tables -P FORWARD DROP
-ip6tables -F FORWARD
-ip6tables -P INPUT DROP
-ip6tables -F INPUT
+ip6tables -I OUTPUT -o lo -j ACCEPT
+ip6tables -I OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -j ACCEPT
 

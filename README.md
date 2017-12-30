@@ -12,7 +12,11 @@ Features
   * Uses configuration files from VPN service provider
   * Less risk of configuration errors
 
-### New in this version (v1.3 beta)
+### New in this version, v1.4 alpha
+  * Qubes 4.0 support (firewall)
+  * Todo: IPv6 support
+
+### New in prior version, v1.3 beta
   * Simple install script; No file editing
   * Separate firewall not required (Qubes 'Deny except' works)
   * Flexible installation into template or to proxyVM-only

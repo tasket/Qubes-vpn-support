@@ -48,6 +48,8 @@ case "$1" in
     qubes-vpn-ns proxy-firewall-restrict -t /rw/config
         ln -s -f /rw/config/proxy-firewall-restrict \
     /rw/config/qubes-firewall-user-script
+        ln -s -f /rw/config/proxy-firewall-restrict \
+    /rw/config/qubes-ip-change-hook # Check Qubes issue #3260
         echo "copy complete."
         do_userpass
         echo "Done!"
