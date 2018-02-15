@@ -46,10 +46,9 @@ case "$1" in
         echo -n "Isolated install for proxyVM..."
         cp -a vpn rc.local qubes-vpn-handler.service* qubes-vpn-setup \
     qubes-vpn-ns proxy-firewall-restrict -t /rw/config
+        mkdir -p /rw/config/qubes-firewall.d
         ln -s -f /rw/config/proxy-firewall-restrict \
-    /rw/config/qubes-firewall-user-script
-        ln -s -f /rw/config/proxy-firewall-restrict \
-    /rw/config/qubes-ip-change-hook # Check Qubes issue #3260
+    /rw/config/qubes-firewall.d/90_tunnel-restrict
         echo "copy complete."
         do_userpass
         echo "Done!"
@@ -64,7 +63,7 @@ case "$1" in
     if is_proxyvm ; then
         mkdir -p /rw/config/vpn
         ln -s -f /usr/lib/qubes/proxy-firewall-restrict \
-    /rw/config/qubes-firewall-user-script
+    /rw/config/qubes-firewall.d/90_tunnel-restrict
         do_userpass
     fi
 ;;
