@@ -1,5 +1,5 @@
 # Qubes-vpn-support
-Secure VPN VMs in Qubes OS
+Secure VPN VMs in [Qubes OS](https://www.qubes-os.org)
 
 Features
 -
@@ -59,7 +59,7 @@ Regular usage is simple: Just link other VMs to the VPN VM and start them!
 
 Operating system support
 -
-Qubes-vpn-support is tested to run on Debian 9 and Fedora 26 template-based VMs under Qubes OS releases 3.2 and 4.0-rc4. It is further tested to operate in tandem with Whonix gateway VMs to tunnel Tor traffic and/or tunnel over Tor to enhance security and anonymity.
+Qubes-vpn-support is tested to run on Debian 9 and Fedora 26 template-based VMs under Qubes OS releases 3.2 and 4.0-rc4. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor to enhance security and anonymity.
 
 Note that upcoming VPN tunnel support packaged with Qubes OS will contain most
 of the features in Qubes-vpn-support v1.4. Therefore, it is suggested most users
