@@ -23,19 +23,15 @@ do_userpass () {
     echo
 }
 
+# needs source dir passed as first arg
 firewall_link () {
-    if is_templatevm; then
-        fwpath=/usr/lib/qubes
-    else
-        fwpath=/rw/config
-    fi
     if iptables -L QBS-FORWARD >/dev/null; then
     # firewall for Qubes 4
         mkdir -p /rw/config/qubes-firewall.d
-        ln -s -f $fwpath/proxy-firewall-restrict \
+        ln -s -f $1/proxy-firewall-restrict \
     /rw/config/qubes-firewall.d/90_tunnel-restrict
     else
-        ln -s -f $fwpath/proxy-firewall-restrict \
+        ln -s -f $1/proxy-firewall-restrict \
     /rw/config/qubes-firewall-user-script
     fi
 }
@@ -64,7 +60,7 @@ case "$1" in
         echo -n "Isolated install for proxyVM..."
         cp -a vpn rc.local qubes-vpn-handler.service* qubes-vpn-setup \
     qubes-vpn-ns proxy-firewall-restrict -t /rw/config
-        firewall_link
+        firewall_link /rw/config
         echo "copy complete."
         do_userpass
         echo "Done!"
@@ -78,7 +74,7 @@ case "$1" in
 --config)
     if is_proxyvm ; then
         mkdir -p /rw/config/vpn
-        firewall_link
+        firewall_link /usr/lib/qubes
         do_userpass
         echo "Done!"
     else
