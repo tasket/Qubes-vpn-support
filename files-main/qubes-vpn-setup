@@ -23,6 +23,19 @@ do_userpass () {
     echo
 }
 
+firewall_link () {
+    if iptables -L QBS-FOR >/dev/null; then
+    # firewall for Qubes 4
+        mkdir -p /rw/config/qubes-firewall.d
+        ln -s -f /rw/config/proxy-firewall-restrict \
+    /rw/config/qubes-firewall.d/90_tunnel-restrict
+    else
+        ln -s -f /rw/config/proxy-firewall-restrict \
+    /rw/config/qubes-firewall-user-script
+    fi
+}
+        
+
 case "$1" in
 --install)
 
@@ -46,9 +59,7 @@ case "$1" in
         echo -n "Isolated install for proxyVM..."
         cp -a vpn rc.local qubes-vpn-handler.service* qubes-vpn-setup \
     qubes-vpn-ns proxy-firewall-restrict -t /rw/config
-        mkdir -p /rw/config/qubes-firewall.d
-        ln -s -f /rw/config/proxy-firewall-restrict \
-    /rw/config/qubes-firewall.d/90_tunnel-restrict
+        firewall_link
         echo "copy complete."
         do_userpass
         echo "Done!"
@@ -62,9 +73,9 @@ case "$1" in
 --config)
     if is_proxyvm ; then
         mkdir -p /rw/config/vpn
-        ln -s -f /usr/lib/qubes/proxy-firewall-restrict \
-    /rw/config/qubes-firewall.d/90_tunnel-restrict
+        firewall_link
         do_userpass
+        echo "Done!"
     fi
 ;;
 
