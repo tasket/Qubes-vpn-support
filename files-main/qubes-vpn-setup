@@ -24,13 +24,18 @@ do_userpass () {
 }
 
 firewall_link () {
+    if is_templatevm; then
+        fwpath=/usr/lib/qubes
+    else
+        fwpath=/rw/config
+    fi
     if iptables -L QBS-FORWARD >/dev/null; then
     # firewall for Qubes 4
         mkdir -p /rw/config/qubes-firewall.d
-        ln -s -f /rw/config/proxy-firewall-restrict \
+        ln -s -f $fwpath/proxy-firewall-restrict \
     /rw/config/qubes-firewall.d/90_tunnel-restrict
     else
-        ln -s -f /rw/config/proxy-firewall-restrict \
+        ln -s -f $fwpath/proxy-firewall-restrict \
     /rw/config/qubes-firewall-user-script
     fi
 }
@@ -76,6 +81,8 @@ case "$1" in
         firewall_link
         do_userpass
         echo "Done!"
+    else
+        echo "Not a proxyVM. Check instructions."
     fi
 ;;
 
