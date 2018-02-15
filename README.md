@@ -3,18 +3,18 @@ Secure VPN VMs in Qubes OS
 
 Features
 -
-* Provide a **fail-closed**, anti-leak VPN environment
-* Isolate the VPN client within a dedicated Proxy VM
-* Isolate local VPN VM programs from network
+* Provides a **fail-closed**, anti-leak VPN tunnel environment
+* Isolates the tunnel client within a dedicated Proxy VM
+* Isolates local VM programs from network
 
 ### Easy setup
   * Fully supports server names; IP addresses not necessary
   * Uses configuration files from VPN service provider
   * Less risk of configuration errors
 
-### New in this version, v1.4 alpha
+### New in this version, v1.4 beta
   * Qubes 4.0 support (firewall)
-  * Todo: IPv6 support
+  * Anti-leak for IPv6
 
 ### New in prior version, v1.3 beta
   * Simple install script; No file editing
@@ -22,6 +22,8 @@ Features
   * Flexible installation into template or to proxyVM-only
 
 ### Releases:
+v1.4 beta, February 2018
+
 v1.3 beta, July 2017
 
 v1.0.2, June 2016
@@ -57,7 +59,12 @@ Regular usage is simple: Just link other VMs to the VPN VM and start them!
 
 Operating system support
 -
-Qubes-vpn-support is tested to run on Debian 8, Debian 9 and Fedora 25 template-based VMs under Qubes OS. It is further tested to operate in tandem with Whonix gateway VMs to tunnel Tor traffic and/or tunnel over Tor to enhance security and anonymity.
+Qubes-vpn-support is tested to run on Debian 9 and Fedora 26 template-based VMs under Qubes OS releases 3.2 and 4.0-rc4. It is further tested to operate in tandem with Whonix gateway VMs to tunnel Tor traffic and/or tunnel over Tor to enhance security and anonymity.
+
+Note that upcoming VPN tunnel support packaged with Qubes OS will contain most
+of the features in Qubes-vpn-support v1.4. Therefore, it is suggested most users
+consider using that instead. This project will continue for people looking to
+experiment with custom tweaks and new features.
 
 Technical notes
 -
@@ -104,7 +111,7 @@ This handler script is tested to work with OpenVPN v2.3 and v2.4, but should be 
 
 DNS addresses are automatically acquired from DHCP without altering the local resolv.conf settings, so the VPN's DNS is normally only available to attached downstream VMs. This is intended as a privacy measure to prevent any inadvertant access by local (VPN VM) programs over the VPN tunnel.
 
-### Roles
+### Basic concepts
 
 * The VPN VM is generally trusted. It is assumed its programs won't try to impersonate openvpn (send data via port 1194), for example.
 * Everything outside the VPN VM and VPN server is essentially untrusted (from the VPN client's point of view): This means the sys-net, local router, ISP and downstream VMs are potential threats. (This doesn't affect the users POV of whether individual appVMs are trusted.)
@@ -115,4 +122,5 @@ DNS addresses are automatically acquired from DHCP without altering the local re
 Future
 -
 * Add systray icon for VPN status and control
-* Provisioning through packages and Saltstack
+* Explore support for other tunnel software: stunnel, wireguard, etc.
+
