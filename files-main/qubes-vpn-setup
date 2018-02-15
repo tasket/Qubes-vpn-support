@@ -24,7 +24,7 @@ do_userpass () {
 }
 
 firewall_link () {
-    if iptables -L QBS-FOR >/dev/null; then
+    if iptables -L QBS-FORWARD >/dev/null; then
     # firewall for Qubes 4
         mkdir -p /rw/config/qubes-firewall.d
         ln -s -f /rw/config/proxy-firewall-restrict \
