@@ -82,7 +82,7 @@ case "$1" in
     fi
 ;;
 
---userpass)
+--pre-start)
     if [ ! -f $uppath ]; then
         if [ ! -f /tmp/qvpn-askpass ]; then
             systemd-run -E DISPLAY=:0 sh -c 'sleep 2s; /usr/bin/xterm \

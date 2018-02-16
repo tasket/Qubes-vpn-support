@@ -5,11 +5,11 @@
 ##  proxy-firewall-restrict
 ##  Configure Qubes firewall for use with a tunnel such as OpenVPN.
 ##
+##  Note: For customization, add rules to a filename in firewall.d
+##  other than '90_tunnel-restrict'.
 
 
 groupadd -rf qvpn && sync
-qservice=`find /var/run/qubes-service -name 'vpn-handler*'`
-##[ -n "$qservice" ] || exit 0
 
 correct_ips() {
     # Correct the 10.137.x.x nameserver IPs in FORWARD chain (Qubes 3.x)
@@ -28,34 +28,29 @@ correct_ips() {
 }
 
 # Set firewall restriction policy
-iptables -P INPUT DROP
-iptables -P FORWARD DROP
-iptables -P OUTPUT DROP
-
-ip6tables -P INPUT DROP
-ip6tables -P FORWARD DROP
-ip6tables -P OUTPUT DROP
 
 # Stop all leaks between downstream (vif+) and upstream (Internet eth0):
+iptables -P FORWARD DROP
 iptables -I FORWARD -o eth0 -j DROP
 iptables -I FORWARD -i eth0 -j DROP
 
+ip6tables -P FORWARD DROP
 ip6tables -I FORWARD -o eth0 -j DROP
 ip6tables -I FORWARD -i eth0 -j DROP
 
-# Fix DNS IPs if QBS-FORWARD not present (Qubes ver < 4)
-iptables -L QBS-FORWARD || correct_ips
-
-
-# Lines past this point are optional...
-
-
 # Block INPUT from tunnel(s):
+iptables -P INPUT DROP
 iptables -I INPUT -i tun+ -j DROP
+
+ip6tables -P INPUT DROP
 ip6tables -I INPUT -i tun+ -j DROP
+
 # Allow established v6 traffic (v4 rule already present):
 #iptables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
 ip6tables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
+
+# Fix DNS IPs if QBS-FORWARD not present (Qubes ver < 4)
+iptables -L QBS-FORWARD || correct_ips
 
 # Disable icmp packets
 #if iptables -C INPUT -p icmp -j ACCEPT
@@ -63,12 +58,18 @@ ip6tables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
 #fi
 
 
+###-------------------------------------------------------------------###
+# This section executed only if plain vpn-handler service is active:
+[ -e /var/run/qubes-service/vpn-handler ] || exit 0
+
 # Prevent accidental communications from within VPN VM to net;
-# The gid-owner rule requires net programs be run with group ID 'qvpn'
+# The gid-owner rule requires net programs be run with group ID 'qtunnel'
 # to allow outbound traffic.
+iptables -P OUTPUT DROP
 iptables -I OUTPUT -o lo -j ACCEPT
 iptables -I OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -j ACCEPT
 
+ip6tables -P OUTPUT DROP
 ip6tables -I OUTPUT -o lo -j ACCEPT
 ip6tables -I OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -j ACCEPT
 

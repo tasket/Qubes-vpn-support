@@ -7,12 +7,19 @@
 Description=VPN Client for Qubes proxyVM
 ConditionPathExists=!/var/run/qubes/this-is-templatevm
 ConditionPathExists=/rw/config/vpn
+ConditionPathExistsGlob=/var/run/qubes-service/vpn-handler*
 After=network.target qubes-firewall.service rw.mount
 
 [Service]
 Group=qvpn
 Restart=always
 RestartSec=10
+TimeoutStopSec=2
+
+ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --pre-start
+ExecStart=/usr/sbin/openvpn --cd /rw/config/vpn/ --config vpn-client.conf --group qvpn --mlock \
+--script-security 2 --up "/usr/lib/qubes/qubes-vpn-ns up" --down "/usr/lib/qubes/qubes-vpn-ns down" \
+--auth-user-pass /tmp/userpassword.txt
 
 [Install]
 WantedBy=multi-user.target
