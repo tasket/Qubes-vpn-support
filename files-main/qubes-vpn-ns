@@ -10,7 +10,7 @@
 ## In openvpn config, format is: setenv vpn_dns 'X.X.X.X  Y.Y.Y.Y [...]'
 
 set -e
-export PATH="$PATH:/usr/sbin:/sbin"
+export PATH="$PATH:/usr/sbin:/sbin:/bin"
 nspath=/var/run/qubes/qubes-vpn-ns
 
 case "$1" in

@@ -1,4 +1,5 @@
 #!/bin/bash
+export PATH="$PATH:/usr/sbin:/sbin:/bin"
 [ `id -u` -eq 0 ] || exit 1
 . /usr/lib/qubes/init/functions
 uppath=/rw/config/vpn/userpassword.txt
