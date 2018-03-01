@@ -15,7 +15,7 @@ Features
 ### New in this version, v1.4 beta2
   * Qubes 4.0 support (firewall)
   * Anti-leak for IPv6
-  * Add DNS requests redirected to VPN DNS
+  * All DNS requests redirected to VPN DNS
 
 ### New in prior version, v1.3 beta
   * Simple install script; No file editing
