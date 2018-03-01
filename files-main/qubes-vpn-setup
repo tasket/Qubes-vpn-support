@@ -7,8 +7,8 @@ tmppath="/tmp/"`basename $uppath`
 
 do_userpass () {
     echo
-    read -p  "VPN username: " username
-    read -s -p "VPN password: " upassword
+    read -p  "VPN/tunnel username: " username
+    read -s -p "VPN/tunnel password: " upassword
     echo
     echo
     echo "$username" >$tmppath.tmp
@@ -83,15 +83,26 @@ case "$1" in
     fi
 ;;
 
+--check-firewall)
+    if ! iptables -C FORWARD -o eth0 -j DROP \
+    || ! iptables -C FORWARD -i eth0 -j DROP ; then
+        echo "Error: Firewall rule(s) not enabled!"
+        exit 1
+    fi
+;;
+
 --pre-start)
     if [ ! -f $uppath ]; then
         if [ ! -f /tmp/qvpn-askpass ]; then
-            systemd-run -E DISPLAY=:0 sh -c 'sleep 2s; /usr/bin/xterm \
--T "VPN Login" -e /usr/lib/qubes/qubes-vpn-setup --xterm'
+            systemd-run --unit=qvpn-askpass -E DISPLAY=:0 sh -c \
+            'sleep 2s; /usr/bin/xterm \
+            -T "VPN Login" -e /usr/lib/qubes/qubes-vpn-setup --xterm'
         fi
-    else
+    elif [ ! -f $tmppath ]; then
         cp -a $uppath $tmppath.tmp
         mv $tmppath.tmp $tmppath
+        sync
+        su - -c 'notify-send "$(hostname): Ready to start link."' user
     fi
 ;;
 
@@ -99,5 +110,19 @@ case "$1" in
     touch /tmp/qvpn-askpass
     do_userpass
 ;;
+
+--post-start)
+    echo "START-ing network forwarding!"
+    echo '1' > /proc/sys/net/ipv4/ip_forward
+# '0' appears to be default setting for ipv6
+#    echo '1' > /proc/sys/net/ipv6/conf/all/forwarding
+;;
+
+--post-stop)
+    echo "STOP-ing network forwarding!"
+    echo '0' > /proc/sys/net/ipv4/ip_forward
+    echo '0' > /proc/sys/net/ipv6/conf/all/forwarding
+;;
+
 esac
 

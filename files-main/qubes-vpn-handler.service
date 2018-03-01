@@ -16,10 +16,17 @@ Restart=always
 RestartSec=10
 TimeoutStopSec=2
 
+ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --check-firewall
 ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --pre-start
-ExecStart=/usr/sbin/openvpn --cd /rw/config/vpn/ --config vpn-client.conf --group qvpn --mlock \
---script-security 2 --up "/usr/lib/qubes/qubes-vpn-ns up" --down "/usr/lib/qubes/qubes-vpn-ns down" \
+
+ExecStart=/usr/sbin/openvpn --cd /rw/config/vpn/ --config vpn-client.conf \
+--group qvpn --verb 4 --mlock --script-security 2 \
+--up "/usr/lib/qubes/qubes-vpn-ns up" --down "/usr/lib/qubes/qubes-vpn-ns down" \
 --auth-user-pass /tmp/userpassword.txt
+
+ExecStartPost=/usr/lib/qubes/qubes-vpn-setup --post-start
+ExecStopPost=/usr/lib/qubes/qubes-vpn-setup --post-stop
+
 
 [Install]
 WantedBy=multi-user.target
