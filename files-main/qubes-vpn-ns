@@ -32,7 +32,7 @@ up)
         for optionname in ${!foreign_option_*} ; do
             option="${!optionname}"
             unset fops; fops=($option)
-            if [ ${fops[1]} == "DNS" ] ; then vpn_dns="$vpn_dns ${fops[2]}" ; fi
+            if [ ${fops[1]} == "DNS" ] ; then vpn_dns="${fops[2]} $vpn_dns" ; fi
         done
     fi
     if [[ -n "$vpn_dns" ]] ; then
@@ -44,11 +44,11 @@ up)
 
         iptables -t nat -F PR-QBS
         . /var/run/qubes/qubes-ns
-        q_addr=$NS1 ; nsend=1
+        q_addr=""
         for DNS in $vpn_dns; do
-            iptables -t nat -A PR-QBS -d $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
-            iptables -t nat -A PR-QBS -d $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
-            q_addr=$NS2 ; nsend=254
+            iptables -t nat -A PR-QBS $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
+            iptables -t nat -A PR-QBS $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
+            q_addr="-d $NS1"
         done
 
         su - -c 'notify-send "$(hostname): LINK IS UP." --icon=network-idle' user
