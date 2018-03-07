@@ -111,10 +111,12 @@ Since it is the job of a VPN vendor to focus tightly on __link__ security, you s
 ### Link security
 A secure VPN service will use a certificate configuration, usually meaning `remote-cert-tls` is used in the openvpn config; This is the best way to protect against MITM attacks and ensure you are really connecting to your VPN service provider. Conversely, restricting access to particular addresses via the firewall is probably not going to substantially improve link security as IP addresses can be spoofed by an attacker.
 
-### About qubes-firewall-user-script / proxy-firewall-restrict
-This script builds on the internal rules already set by Qubes firewall in a Proxy VM, and puts the VM in a very locked-down state for networking. Adding your own iptables rules is most easily done by inserting them before the first `iptables` command, or on Qubes 4.x you can add a custom script in the /rw/config/qubes-firewall.d folder.
+### About proxy-firewall-restrict
+This script builds on the internal rules already set by Qubes firewall in a Proxy VM, and puts the VM in a very locked-down state for networking.
 
-The section that 'Corrects nameserver IPs' corrects a Qubes 3.x issue that prevented the VPN VM from being used as a "Deny except" whitelist firewall.
+On Qubes 3.x this script is linked to qubes-firewall-user-script. Adding your own iptables rules is most easily done by copying the original script to /rw/config and inserting new rules near the top. The section that 'Corrects nameserver IPs' corrects a Qubes 3.x issue that prevented the VPN VM from being used as a "Deny except" whitelist firewall.
+
+On Qubes 4.x this script is linkd to /rw/config/qubes-firewall.d/90_tunnel-restrict and you can add a custom script in the qubes-firewall.d folder to include your own rules.
 
 Outgoing traffic is controlled by group ID of the running process. So even if your VPN provider has dozens of IPs randomly-assigned via DNS or uses a client other than openvpn then no editing of the firewall script should be necessary. However, this group-based control can be safely removed if necessary by simply changing OUTPUT policy to ACCEPT; the restriction exists only to prevent accidental clearnet access from within the VPN VM and does not affect anti-leak rules for connected downstream VMs.
 
