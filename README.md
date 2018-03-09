@@ -31,7 +31,13 @@ v1.0.2, June 2016
 
 Quickstart setup guide
 -
-1. Create a proxyVM using a template with VPN/tunnel software installed (i.e. OpenVPN), then add `vpn-handler-openvpn` to the proxyVM's VM Settings / Services tab.
+
+## QUBES 4.0 NOTE!
+Necessary fixes to Qubes 4.0 firewall have not yet made it to the rc5 release. This means you will need to update your template with the [Qubes testing](https://www.qubes-os.org/doc/software-update-vm/#testing-repositories) repositories for the time being as a prerequisite for following these instructions.
+
+1. Create a proxyVM using a template with VPN/tunnel software installed (i.e. OpenVPN). (In Qubes 4.0 a proxyVM is called an `AppVM` with the `provides network` option enabled; this document will use the more descriptive `proxyVM` term...)
+
+Next, add `vpn-handler-openvpn` to the proxyVM's VM Settings / Services tab. Do not add other network services such as Network Manager.
 
 2. Transfer Qubes-vpn-support folder to the template or proxy VM of your choice, then run install. This will also prompt for your VPN login credentials either in this step (proxyVM) or next step (template):
 ```
@@ -58,7 +64,7 @@ Regular usage is simple: Just link other VMs to the VPN VM and start them!
 
 Operating system support
 -
-Qubes-vpn-support is tested to run on Debian 9 and Fedora 26 template-based VMs under Qubes OS releases 3.2 and 4.0-rc4. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor to enhance security and anonymity.
+Qubes-vpn-support is tested to run on Debian 9 and Fedora 26 template-based VMs under Qubes OS releases 3.2 and 4.0-rc5/testing. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor to enhance security and anonymity.
 
 Note that upcoming VPN tunnel support packaged with Qubes OS will likely contain most
 of the features in Qubes-vpn-support v1.4. Therefore, most users should
