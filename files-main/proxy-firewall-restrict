@@ -59,11 +59,13 @@ iptables -L QBS-FORWARD || correct_ips
 
 
 ###-------------------------------------------------------------------###
-# This section executed only if plain vpn-handler service is active:
-[ -e /var/run/qubes-service/vpn-handler ] || exit 0
+# This section executed only if a vpn-handler* service is active:
+if ! ls /var/run/qubes-service/vpn-handler* 1> /dev/null 2>&1; then
+    exit 0
+fi
 
 # Prevent accidental communications from within VPN VM to net;
-# The gid-owner rule requires net programs be run with group ID 'qtunnel'
+# The gid-owner rule requires net programs be run with group ID 'qvpn'
 # to allow outbound traffic.
 iptables -P OUTPUT DROP
 iptables -I OUTPUT -o lo -j ACCEPT
