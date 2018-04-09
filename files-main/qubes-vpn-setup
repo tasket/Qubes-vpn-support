@@ -109,6 +109,8 @@ case "$1" in
         cp -a vpn rc.local qubes-vpn-handler.service* qubes-vpn-setup \
     qubes-vpn-ns proxy-firewall-restrict -t /rw/config
         firewall_link /rw/config
+        ln -s -f /rw/config/qubes-vpn-setup /usr/lib/qubes/qubes-vpn-setup
+        ln -s -f /rw/config/qubes-vpn-ns /usr/lib/qubes/qubes-vpn-ns
         echo "copy complete."
         do_userpass
         echo "Done!"
