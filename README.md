@@ -63,7 +63,7 @@ Regular usage is simple: Just link other VMs to the VPN VM and start them!
 
 ### Updating from prior versions
 
-Download the new Qubes-vpn-support release from github to your VPN VM, then run the `sudo /usr/lib/qubes/qubes-vpn-setup --config` command to reinstall. The username/password entry can be skipped by pressing Ctrl-C at the prompt.
+Download the new Qubes-vpn-support release from github to your VPN VM as before, then run the `sudo bash ./install` command to reinstall. The username/password entry can be skipped by pressing Ctrl-C at the prompt.
 
 ---
 
