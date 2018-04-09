@@ -1,11 +1,17 @@
-#!/bin/bash
+#!/bin/sh
 export PATH="$PATH:/usr/sbin:/sbin:/bin"
 [ `id -u` -eq 0 ] || exit 1
-. /usr/lib/qubes/init/functions
-uppath=/rw/config/vpn/userpassword.txt
-tmppath="/tmp/"`basename $uppath`
+
+qvpnpath=/rw/config/vpn
+upfile=userpassword.txt
+tmppath=/tmp/$upfile
 
 do_userpass () {
+    bash /usr/lib/qubes/qubes-vpn-setup --userpass-bash
+}
+
+# Need bash for password prompt
+do_userpass_bash () {
     echo
     read -p  "VPN/tunnel username: " username
     read -s -p "VPN/tunnel password: " upassword
@@ -17,8 +23,8 @@ do_userpass () {
     mv $tmppath.tmp $tmppath
 #    read -N 1 -p "Save login info (Y/N)? " answer
 #    if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-        cp -a $tmppath $uppath
-        echo -e "\nLogin info saved to $uppath"
+        cp -a $tmppath $qvpnpath/$upfile
+        echo -e "\nLogin info saved to $qvpnpath/$upfile"
         sleep 1s
 #    fi
     echo
@@ -39,13 +45,54 @@ firewall_link () {
         
 
 case "$1" in
+--check-firewall)
+    for i in 1 2 3; do
+        if iptables -C FORWARD -o eth0 -j DROP \
+        && iptables -C FORWARD -i eth0 -j DROP ; then
+            exit 0
+        elif [ $i = 3 ]; then
+            echo "Error: Firewall rule(s) not enabled!"
+            exit 1
+        fi
+        sleep 2s
+    done
+;;
+
+--pre-start)
+    if [ ! -f $qvpnpath/$upfile ]; then
+        if [ ! -f /tmp/qvpn-askpass ]; then
+            systemd-run --unit=qvpn-askpass -E DISPLAY=:0 sh -c \
+            'sleep 2s; /usr/bin/xterm \
+            -T "VPN Login" -e /usr/lib/qubes/qubes-vpn-setup --xterm'
+        fi
+    elif [ ! -f $tmppath ]; then
+        cp -a $qvpnpath/$upfile $tmppath.tmp
+        mv $tmppath.tmp $tmppath
+        sync
+        su - -c 'notify-send "$(hostname): Ready to start link."' user
+    fi
+;;
+
+--post-start)
+    echo "START-ing network forwarding!"
+    echo '1' > /proc/sys/net/ipv4/ip_forward
+# '0' appears to be default setting for ipv6
+#    echo '1' > /proc/sys/net/ipv6/conf/all/forwarding
+;;
+
+--post-stop)
+    echo "STOP-ing network forwarding!"
+    echo '0' > /proc/sys/net/ipv4/ip_forward
+    echo '0' > /proc/sys/net/ipv6/conf/all/forwarding
+;;
+
 --install)
 
     if [ ! -d vpn ]; then exit 1; fi
     chown -R root:root *
     chmod +x rc.local qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict
 
-    if is_templatevm ; then
+    if [ -e /var/run/qubes/this-is-templatevm ]; then
         echo "Install into templateVM..."
         groupadd -rf qvpn
         cp -a qubes-vpn-handler.service* /lib/systemd/system
@@ -57,7 +104,7 @@ case "$1" in
         echo "Next, shutdown this template then start proxyVM and run:"
         echo "sudo /usr/lib/qubes/qubes-vpn-setup --config"
 
-    elif is_proxyvm ; then
+    elif [ -e /var/run/qubes/this-is-proxyvm ]; then
         echo -n "Isolated install for proxyVM..."
         cp -a vpn rc.local qubes-vpn-handler.service* qubes-vpn-setup \
     qubes-vpn-ns proxy-firewall-restrict -t /rw/config
@@ -73,6 +120,7 @@ case "$1" in
 ;;
 
 --config)
+    . /usr/lib/qubes/init/functions
     if is_proxyvm ; then
         mkdir -p /rw/config/vpn
         firewall_link /usr/lib/qubes
@@ -83,26 +131,14 @@ case "$1" in
     fi
 ;;
 
---check-firewall)
-    if ! iptables -C FORWARD -o eth0 -j DROP \
-    || ! iptables -C FORWARD -i eth0 -j DROP ; then
-        echo "Error: Firewall rule(s) not enabled!"
+--config-nm)
+    . /usr/lib/qubes/init/functions
+    if is_proxyvm ; then
+        firewall_link /usr/lib/qubes
+        echo "Done!"
+    else
+        echo "Error: Not a proxyVM. Please check instructions."
         exit 1
-    fi
-;;
-
---pre-start)
-    if [ ! -f $uppath ]; then
-        if [ ! -f /tmp/qvpn-askpass ]; then
-            systemd-run --unit=qvpn-askpass -E DISPLAY=:0 sh -c \
-            'sleep 2s; /usr/bin/xterm \
-            -T "VPN Login" -e /usr/lib/qubes/qubes-vpn-setup --xterm'
-        fi
-    elif [ ! -f $tmppath ]; then
-        cp -a $uppath $tmppath.tmp
-        mv $tmppath.tmp $tmppath
-        sync
-        su - -c 'notify-send "$(hostname): Ready to start link."' user
     fi
 ;;
 
@@ -111,17 +147,8 @@ case "$1" in
     do_userpass
 ;;
 
---post-start)
-    echo "START-ing network forwarding!"
-    echo '1' > /proc/sys/net/ipv4/ip_forward
-# '0' appears to be default setting for ipv6
-#    echo '1' > /proc/sys/net/ipv6/conf/all/forwarding
-;;
-
---post-stop)
-    echo "STOP-ing network forwarding!"
-    echo '0' > /proc/sys/net/ipv4/ip_forward
-    echo '0' > /proc/sys/net/ipv6/conf/all/forwarding
+--userpass-bash)
+    do_userpass_bash
 ;;
 
 esac

@@ -21,7 +21,7 @@ Features
   * All DNS requests redirected to VPN DNS
 
 ### Releases:
-v1.4 beta2, February 2018
+v1.4 beta3, April 2018
 
 v1.3 beta, July 2017
 
@@ -34,28 +34,36 @@ Quickstart setup guide
 
 1. Create a proxyVM using a template with VPN/tunnel software installed (i.e. OpenVPN). (In Qubes 4.0 a proxyVM is called an `AppVM` with the `provides network` option enabled; this document will use the more descriptive `proxyVM` term...)
 
-Next, add `vpn-handler-openvpn` to the proxyVM's VM Settings / Services tab. Do not add other network services such as Network Manager.
+   Next, add `vpn-handler-openvpn` to the proxyVM's VM Settings / Services tab. Do not add other network services such as Network Manager.
 
 2. Transfer Qubes-vpn-support folder to the template or proxy VM of your choice, then run install. This will also prompt for your VPN login credentials either in this step (proxyVM) or next step (template):
-```
-cd Qubes-vpn-support
-sudo bash ./install
-```
+
+   ```
+   cd Qubes-vpn-support
+   sudo bash ./install
+   ```
+
 3. If installed to a template, shutdown the templateVM then start the proxyVM and finish setup with:
-```
-sudo /usr/lib/qubes/qubes-vpn-setup --config
-```
+
+   ```
+   sudo /usr/lib/qubes/qubes-vpn-setup --config
+   ```
 
 4. Copy the VPN config files from your service provider to the proxyVM's /rw/config/vpn folder, then copy or link the desired config to 'vpn-client.conf':
-```
-cd /rw/config/vpn
-sudo unzip ~/ovpn-configs-example.zip
-sudo ln -s US_East.ovpn vpn-client.conf
-```
+
+   ```
+   cd /rw/config/vpn
+   sudo unzip ~/ovpn-configs-example.zip
+   sudo ln -s US_East.ovpn vpn-client.conf
+   ```
 
 Restart the proxyVM. This will autostart the VPN client and you should see a popup notification 'LINK IS UP'!
 
 Regular usage is simple: Just link other VMs to the VPN VM and start them!
+
+### Updating from prior versions
+
+Download the new Qubes-vpn-support release from github to your VPN VM, then run the `sudo /usr/lib/qubes/qubes-vpn-setup --config` command to reinstall. The username/password entry can be skipped by pressing Ctrl-C at the prompt.
 
 ---
 
@@ -90,16 +98,16 @@ Technical notes
 * You should be able to use `ping` from a downstream appVM.
 
 * For manual DNS testing you can set your VPN's DNS addresses in a CLI with:
-```
-export vpn_dns="dnsaddress1 dnsaddress2"
-sudo /rw/config/vpn/qubes-vpn-ns up
-```
+  ```
+  export vpn_dns="dnsaddress1 dnsaddress2"
+  sudo /rw/config/vpn/qubes-vpn-ns up
+  ```
 
-Similarly, you can use `vpn_dns` to permanently override the DNS that your provider assigns. Just use openvpn's `setenv` in the config file like this:
-```
-setenv vpn_dns 'dnsaddress1 dnsaddress2'
+  Similarly, you can use `vpn_dns` to permanently override the DNS that your provider assigns. Just use openvpn's `setenv` in the config file like this:
+  ```
+  setenv vpn_dns 'dnsaddress1 dnsaddress2'
 
-```
+  ```
 
 ### Tor/Whonix notes
 Qubes-vpn-support can handle either Tor-over-VPN (configuring sys-whonix `netvm` setting to use VPN VM) or the reverse, VPN-over-Tor (configuring VPN VM `netvm` setting to use sys-whonix). The latter requires the VPN client to be configured for TCP instead of UDP protocol, and a different port number such as 443 may be required by your VPN provider; For openvpn this can all be specified with the `remote` directive in the config file.
@@ -119,7 +127,7 @@ This script builds on the internal rules already set by Qubes firewall in a Prox
 
 On Qubes 3.x this script is linked to qubes-firewall-user-script. Adding your own iptables rules is most easily done by copying the original script to /rw/config and inserting new rules near the top. The section that 'Corrects nameserver IPs' corrects a Qubes 3.x issue that prevented the VPN VM from being used as a "Deny except" whitelist firewall.
 
-On Qubes 4.x this script is linkd to /rw/config/qubes-firewall.d/90_tunnel-restrict and you can add a custom script in the qubes-firewall.d folder to include your own rules.
+On Qubes 4.x this script is linked to /rw/config/qubes-firewall.d/90_tunnel-restrict and you can add a custom script in the qubes-firewall.d folder to include your own rules.
 
 Outgoing traffic is controlled by group ID of the running process. So even if your VPN provider has dozens of IPs randomly-assigned via DNS or uses a client other than openvpn then no editing of the firewall script should be necessary. However, this group-based control can be safely removed if necessary by simply changing OUTPUT policy to ACCEPT; the restriction exists only to prevent accidental clearnet access from within the VPN VM and does not affect anti-leak rules for connected downstream VMs.
 
