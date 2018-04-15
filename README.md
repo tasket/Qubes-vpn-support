@@ -15,17 +15,10 @@ Features
   * Uses configuration files from VPN service provider
   * Less risk of configuration errors
 
-### New in this version, v1.4 beta3
-  * Qubes 4.0 support (firewall)
+### New in this version, v1.4.0
+  * Qubes 4.0 support
   * Anti-leak for IPv6
-  * All DNS requests redirected to VPN DNS
-
-### Releases:
-v1.4 beta3, April 2018
-
-v1.3 beta, July 2017
-
-v1.0.2, June 2016
+  * All DNS requests re-addressed to VPN's DNS
 
 ---
 
@@ -34,9 +27,11 @@ Quickstart setup guide
 
 1. Create a proxyVM using a template with VPN/tunnel software installed (i.e. OpenVPN). (In Qubes 4.0 a proxyVM is called an `AppVM` with the `provides network` option enabled; this document will use the more descriptive `proxyVM` term...)
 
-   Next, add `vpn-handler-openvpn` to the proxyVM's VM Settings / Services tab. Do not add other network services such as Network Manager.
+   Make a choice for the networking/netvm setting, such as `sys-net`.
 
-2. Transfer Qubes-vpn-support folder to the template or proxy VM of your choice, then run install. This will also prompt for your VPN login credentials either in this step (proxyVM) or next step (template):
+   Next, add `vpn-handler-openvpn` to the proxyVM's Settings / Services tab. Do not add other network services such as Network Manager.
+
+2. Transfer Qubes-vpn-support folder to the template or proxy VM of your choice, then run install. You will be prompted for your VPN login credentials either in this step (proxyVM) or next step (template):
 
    ```
    cd Qubes-vpn-support
@@ -63,20 +58,10 @@ Regular usage is simple: Just link other VMs to the VPN VM and start them!
 
 ### Updating from prior versions
 
-Download the new Qubes-vpn-support release from github to your VPN VM as before, then run the `sudo bash ./install` command to reinstall. The username/password entry can be skipped by pressing Ctrl-C at the prompt.
+Download the new Qubes-vpn-support release from github to your VM as before, then run the `sudo bash ./install` command to reinstall. The username/password entry can be skipped by pressing Ctrl-C at the prompt.
 
----
+### Locating and downloading VPN config files
 
-Operating system support
--
-Qubes-vpn-support is tested to run on Debian 9 and Fedora 26 template-based VMs under Qubes OS releases 3.2 and 4.0-rc5. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor to enhance security and anonymity.
-
-Note that upcoming VPN tunnel support packaged with Qubes OS will likely contain most
-of the features in Qubes-vpn-support v1.4. Therefore, most users should
-consider using the Qubes built-in feature instead when it becomes available. This project will continue for people looking to experiment with custom tweaks and new features.
-
-Locating and downloading VPN config files
--
 Some popular VPN providers:
 * PIA
       https://www.privateinternetaccess.com/pages/client-support/#fifth
@@ -85,19 +70,32 @@ Some popular VPN providers:
 * NordVPN
       https://nordvpn.com/tutorials/linux/openvpn/
 
+---
 
 Technical notes
 -
+
+### Operating system support
+
+Qubes-vpn-support is tested to run on Debian 9 and Fedora 26 template-based VMs under Qubes OS releases 3.2 and 4.0. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor.
+
+Note that upcoming VPN tunnel support packaged with Qubes OS will likely contain most
+of the features in Qubes-vpn-support v1.4. Therefore, most users should
+consider using the Qubes built-in feature instead when it becomes available. This project will continue for people looking to experiment with custom tweaks and new features.
+
 ### OpenVPN
-* It is assumed that 'tun' mode will be used by the VPN as this is by far the most common.
+* The OpenVPN version tested here is 2.4.x.
 
-* Some OpenVPN versions have difficulty with the 'persist tun' option; commenting it out in the config can resolve some connection problems.
+* It is assumed that 'tun' mode will be used by the VPN as this is by far the most common. The 'tap' mode may work, however it is currently untested.
 
+* Routing details can viewed in the service log if required for troubleshooting. They will appear as references to "route" and "gateway".
+
+### Testing
 * Connections can be manually tested with a command like `sudo openvpn --cd  /rw/config/vpn --config vpn-client.conf --auth-user-pass userpassword.txt` but using `systemctl status qubes-vpn-handler` and `journalctl` commands also work to monitor auto-started connections.
 
-* You should be able to use `ping` from a downstream appVM.
+* You should be able to use `ping` and `traceroute` from a downstream appVM after connecting.
 
-* For manual DNS testing you can set your VPN's DNS addresses in a CLI with:
+* For manual DNS testing you can set DNS addresses in a CLI with:
   ```
   export vpn_dns="dnsaddress1 dnsaddress2"
   sudo /rw/config/vpn/qubes-vpn-ns up
@@ -117,7 +115,7 @@ The main issue with using another client is how you run it. For standalone confi
 
 Passing the DNS addresses to `qubes-vpn-ns` is another issue: If your client doesn't automatically pass `foreign_option` vars in the same format as openvpn, then use the `vpn_dns` environment variable as explained in the script comments.
 
-Since it is the job of a VPN vendor to focus tightly on __link__ security, you should be wary of VPN clients that try to manipulate iptables directly to secure the system's overall communications profile; It is unlikely they take Qubes' network topology into account. Normally, security should be added to a VPN setup from the OS or specialty scripts (like these) or by the admins and users themselves. An exception to this is the LEAP bitmask client, which alters iptables with its own anti-leak rules that account for Qubes.
+Since it is the job of a VPN vendor to focus tightly on __link__ security, you should be wary of VPN clients that try to manipulate iptables directly to secure the system's overall communications profile; they probably don't take Qubes' network topology into account. Normally, security should be added to a VPN setup from the OS or specialty scripts (like these) or by the admins and users themselves. An exception to this is the LEAP bitmask client, which alters iptables with its own anti-leak rules that account for Qubes.
 
 ### Link security
 A secure VPN service will use a certificate configuration, usually meaning `remote-cert-tls` is used in the openvpn config; This is the best way to protect against MITM attacks and ensure you are really connecting to your VPN service provider. Conversely, restricting access to particular addresses via the firewall is probably not going to substantially improve link security as IP addresses can be spoofed by an attacker.
@@ -129,7 +127,9 @@ On Qubes 3.x this script is linked to qubes-firewall-user-script. Adding your ow
 
 On Qubes 4.x this script is linked to /rw/config/qubes-firewall.d/90_tunnel-restrict and you can add a custom script in the qubes-firewall.d folder to include your own rules.
 
-Outgoing traffic is controlled by group ID of the running process. So even if your VPN provider has dozens of IPs randomly-assigned via DNS or uses a client other than openvpn then no editing of the firewall script should be necessary. However, this group-based control can be safely removed if necessary by simply changing OUTPUT policy to ACCEPT; the restriction exists only to prevent accidental clearnet access from within the VPN VM and does not affect anti-leak rules for connected downstream VMs.
+When any `vpn-handler*` Qubes service is active, outgoing traffic is controlled by group ID of the running process; only `qvpn` group is granted access. So even if your VPN provider has dozens of IPs randomly-assigned via DNS or uses a client other than openvpn then no editing of the firewall script should be necessary. However, this group-based control can be safely removed if necessary by simply changing OUTPUT policy to ACCEPT; the restriction exists only to prevent accidental clearnet access from within the VPN VM and does not affect anti-leak rules for connected downstream VMs.
+
+If `proxy-firewall-restrict` is used to secure another connection scheme (i.e. Network Manager), this arrangement should work as long as a `vpn-handler*` service is *not* specified. Otherwise, Network Manager would need some way of running the VPN client under the `qvpn` group.
 
 Also, local traffic to and from tun0 and vif+ is disallowed. However, the current version allows ICMP packets so if you think blocking these is necessary you can un-comment the ICMP section of the script.
 
@@ -148,9 +148,17 @@ A change was made in 1.4beta2 to ensure that misconfiguration or malware in an a
 * The purpose of the programs in the VPN VM is to support the creation of the VPN link. Their net access is either null or clearnet only; they should not send packets through the VPN tunnel and potentially get published.
 * Configuration of the VPN client details (server address, protocols, etc) should be downloaded from the VPN provider's support page; the user can simply drop the config file into the /rw/config/vpn folder and rename it.
 
-Future
--
-* Add systray icon for VPN status and control
-* Explore support for other tunnel software: stunnel, wireguard, etc.
+### Releases
+v1.4.0, April 2018
 
+v1.3 beta, July 2017
+
+v1.0.2, June 2016
+
+### See also
+[OpenVPN documentation](https://openvpn.net/index.php/open-source/documentation.html)
+
+[Whonix - Tor networking in Qubes](https://www.qubes-os.org/doc/whonix/install/)
+
+[Qubes VM hardening](https://github.com/tasket/Qubes-VM-hardening)
 

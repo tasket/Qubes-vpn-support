@@ -15,13 +15,18 @@ Group=qvpn
 Restart=always
 RestartSec=10
 TimeoutStopSec=2
-Environment="retrysec=5 30"
+Environment="retrysec1=5"
+Environment="retrysec2=30"
+Environment="retrymax=7"
+Environment="alivesec1=10"
+Environment="alivesec2=42"
 
 ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --check-firewall
 ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --pre-start
 
 ExecStart=/usr/sbin/openvpn --cd /rw/config/vpn/ --config vpn-client.conf \
---group qvpn --verb 3 --mlock --connect-retry ${retrysec} --script-security 2 \
+--keepalive ${alivesec1} ${alivesec2} --connect-retry ${retrysec1} ${retrysec2} \
+--connect-retry-max ${retrymax} --group qvpn --verb 3 --mlock --script-security 2 \
 --up "/usr/lib/qubes/qubes-vpn-ns up" --down "/usr/lib/qubes/qubes-vpn-ns down" \
 --auth-user-pass /tmp/userpassword.txt
 

@@ -153,5 +153,9 @@ case "$1" in
     do_userpass_bash
 ;;
 
+--version)
+    echo "1.4.0"
+;;
+
 esac
 
