@@ -70,9 +70,9 @@ case "$1" in
         mv $tmppath.tmp $tmppath
         if [ -e /var/run/qubes-service/vpn-handler-openvpn ]; then
             # workaround for openvpn option parser bug:
-            # process config to override scripts.
-            grep -Ev '^[[:space:]]*(up|down)[[:space:]]+' $qvpnpath/vpn-client.conf \
-                >/tmp/vpn-client.conf
+            # process config to override options.
+            grep -Ev '^[[:space:]]*(up|down|script-security|keepalive)[[:space:]]+' \
+              $qvpnpath/vpn-client.conf  >/tmp/vpn-client.conf
         else
             cp -aL $qvpnpath/vpn-client.conf /tmp
         fi

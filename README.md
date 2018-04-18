@@ -66,7 +66,7 @@ Download the new Qubes-vpn-support release from github to your VM as before, the
 Some popular VPN providers:
 * PIA
       https://www.privateinternetaccess.com/pages/client-support/#fifth
-* Mullvad
+* Mullvad (choose platform: Linux)
       https://mullvad.net/en/download/config/
 * NordVPN
       https://nordvpn.com/tutorials/linux/openvpn/
