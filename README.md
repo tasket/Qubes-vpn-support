@@ -9,16 +9,17 @@ Features
 * Separate firewall VM not required
 
 ### Easy setup
-  * Simple install script; No file editing
+  * Simple install script; No file editing or IP numbers necessary
   * Flexible installation into template or to individual proxyVMs
-  * Fully supports server names; IP numbers not necessary
   * Uses configuration files from VPN service provider
   * Less risk of configuration errors
 
-### New in this version, v1.4.0
+### New in this version, v1.4 beta4
   * Qubes 4.0 support
   * Anti-leak for IPv6
   * All DNS requests re-addressed to VPN's DNS
+  * Firewall integrity checked before connecting
+  * Quicker re-connection
 
 ---
 
@@ -149,7 +150,7 @@ A change was made in 1.4beta2 to ensure that misconfiguration or malware in an a
 * Configuration of the VPN client details (server address, protocols, etc) should be downloaded from the VPN provider's support page; the user can simply drop the config file into the /rw/config/vpn folder and rename it.
 
 ### Releases
-v1.4.0, April 2018
+v1.4 beta4, April 2018
 
 v1.3 beta, July 2017
 

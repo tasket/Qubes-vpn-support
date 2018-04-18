@@ -1,7 +1,8 @@
 ##########################################################
 ##  Qubes VPN Handler
 ##
-##  See qubes-vpn-handler.service.d for specific clients
+##  See qubes-vpn-handler.service.d/00_example.conf
+##  for example customization.
 
 [Unit]
 Description=VPN Client for Qubes proxyVM
@@ -9,6 +10,7 @@ ConditionPathExists=!/var/run/qubes/this-is-templatevm
 ConditionPathExists=/rw/config/vpn
 ConditionPathExistsGlob=/var/run/qubes-service/vpn-handler*
 After=network.target qubes-firewall.service rw.mount
+Conflicts=shutdown.target
 
 [Service]
 Group=qvpn
@@ -24,7 +26,7 @@ Environment="alivesec2=42"
 ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --check-firewall
 ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --pre-start
 
-ExecStart=/usr/sbin/openvpn --cd /rw/config/vpn/ --config vpn-client.conf \
+ExecStart=/usr/sbin/openvpn --cd /rw/config/vpn/ --config /tmp/vpn-client.conf \
 --keepalive ${alivesec1} ${alivesec2} --connect-retry ${retrysec1} ${retrysec2} \
 --connect-retry-max ${retrymax} --group qvpn --verb 3 --mlock --script-security 2 \
 --up "/usr/lib/qubes/qubes-vpn-ns up" --down "/usr/lib/qubes/qubes-vpn-ns down" \

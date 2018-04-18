@@ -42,7 +42,7 @@ firewall_link () {
     /rw/config/qubes-firewall-user-script
     fi
 }
-        
+
 
 case "$1" in
 --check-firewall)
@@ -68,6 +68,14 @@ case "$1" in
     elif [ ! -f $tmppath ]; then
         cp -a $qvpnpath/$upfile $tmppath.tmp
         mv $tmppath.tmp $tmppath
+        if [ -e /var/run/qubes-service/vpn-handler-openvpn ]; then
+            # workaround for openvpn option parser bug:
+            # process config to override scripts.
+            grep -Ev '^[[:space:]]*(up|down)[[:space:]]+' $qvpnpath/vpn-client.conf \
+                >/tmp/vpn-client.conf
+        else
+            cp -aL $qvpnpath/vpn-client.conf /tmp
+        fi
         sync
         su - -c 'notify-send "$(hostname): Ready to start link."' user
     fi
@@ -129,7 +137,7 @@ case "$1" in
         do_userpass
         echo "Done!"
     else
-        echo "Not a proxyVM. Check instructions."
+        echo "Error: Not a proxyVM. Check instructions."
     fi
 ;;
 
