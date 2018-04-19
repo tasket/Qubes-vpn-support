@@ -22,6 +22,8 @@ Environment="retrysec2=30"
 Environment="retrymax=7"
 Environment="alivesec1=10"
 Environment="alivesec2=42"
+Environment="upscript=/usr/lib/qubes/qubes-vpn-ns up"
+Environment="dnscript=/usr/lib/qubes/qubes-vpn-ns down"
 
 ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --check-firewall
 ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --pre-start
@@ -29,7 +31,7 @@ ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --pre-start
 ExecStart=/usr/sbin/openvpn --cd /rw/config/vpn/ --config /tmp/vpn-client.conf \
 --ping ${alivesec1} --ping-restart ${alivesec2} --connect-retry ${retrysec1} ${retrysec2} \
 --connect-retry-max ${retrymax} --group qvpn --verb 3 --mlock --script-security 2 \
---up "/usr/lib/qubes/qubes-vpn-ns up" --down "/usr/lib/qubes/qubes-vpn-ns down" \
+--up ${upscript} --down ${dnscript} \
 --auth-user-pass /tmp/userpassword.txt
 
 ExecStartPost=/usr/lib/qubes/qubes-vpn-setup --post-start

@@ -66,7 +66,7 @@ case "$1" in
             -T "VPN Login" -e /usr/lib/qubes/qubes-vpn-setup --xterm'
         fi
     elif [ ! -f $tmppath ]; then
-        cp -a $qvpnpath/$upfile $tmppath.tmp
+        cp -aL $qvpnpath/$upfile $tmppath.tmp
         mv $tmppath.tmp $tmppath
         if [ -e /var/run/qubes-service/vpn-handler-openvpn ]; then
             # workaround for openvpn option parser bug:
