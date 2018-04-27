@@ -1,6 +1,13 @@
 # Qubes-vpn-support
 Secure VPN VMs in [Qubes OS](https://www.qubes-os.org)
 
+---
+---
+#### Help test the new VPN software being submitted for inclusion with Qubes OS:
+#### See [qubes-tunnel](https://github.com/tasket/qubes-tunnel) for info!
+---
+---
+
 Features
 -
 * Provides a **fail-closed**, anti-leak VPN tunnel environment
