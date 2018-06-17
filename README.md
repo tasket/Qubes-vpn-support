@@ -157,7 +157,7 @@ A change was made in 1.4beta2 to ensure that misconfiguration or malware in an a
 * Configuration of the VPN client details (server address, protocols, etc) should be downloaded from the VPN provider's support page; the user can simply drop the config file into the /rw/config/vpn folder and rename it.
 
 ### Releases
-v1.4 beta4, April 2018
+v1.4 beta5, June 2018
 
 v1.3 beta, July 2017
 

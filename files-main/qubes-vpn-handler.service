@@ -24,14 +24,15 @@ Environment="alivesec1=10"
 Environment="alivesec2=42"
 Environment="upscript=/usr/lib/qubes/qubes-vpn-ns up"
 Environment="dnscript=/usr/lib/qubes/qubes-vpn-ns down"
+Environment="filter_opts=up|down|script-security|keepalive|ping|persist-tun|resolv-retry|auth-user-pass"
 
 ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --check-firewall
 ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --pre-start
 
 ExecStart=/usr/sbin/openvpn --cd /rw/config/vpn/ --config /tmp/vpn-client.conf \
 --ping ${alivesec1} --ping-restart ${alivesec2} --connect-retry ${retrysec1} ${retrysec2} \
---connect-retry-max ${retrymax} --group qvpn --verb 3 --mlock --script-security 2 \
---up ${upscript} --down ${dnscript} \
+--connect-retry-max ${retrymax} --resolv-retry 15 --group qvpn --verb 3 --mlock \
+--script-security 2 --up ${upscript} --down ${dnscript} \
 --auth-user-pass /tmp/userpassword.txt
 
 ExecStartPost=/usr/lib/qubes/qubes-vpn-setup --post-start

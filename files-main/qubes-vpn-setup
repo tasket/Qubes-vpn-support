@@ -68,17 +68,17 @@ case "$1" in
     elif [ ! -f $tmppath ]; then
         cp -aL $qvpnpath/$upfile $tmppath.tmp
         mv $tmppath.tmp $tmppath
-        if [ -e /var/run/qubes-service/vpn-handler-openvpn ]; then
-            # workaround for openvpn option parser bug:
-            # process config to override options.
-            grep -Ev '^[[:space:]]*(up|down|script-security|keepalive)[[:space:]]+' \
-              $qvpnpath/vpn-client.conf  >/tmp/vpn-client.conf
-        else
-            cp -aL $qvpnpath/vpn-client.conf /tmp
-        fi
-        sync
-        su - -c 'notify-send "$(hostname): Ready to start link."' user
     fi
+    if [ -n "$filter_opts" ]; then
+        # workaround for option parser bugs and overrides:
+        # process config to remove options.
+        grep -Ev '^[[:space:]]*('"$filter_opts"')[[:space:]]*' \
+          $qvpnpath/vpn-client.conf  >/tmp/vpn-client.conf
+    else
+        cp -aL $qvpnpath/vpn-client.conf /tmp
+    fi
+    sync
+    su - -c 'notify-send "$(hostname): Ready to start link."' user
 ;;
 
 --post-start)
