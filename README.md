@@ -12,7 +12,7 @@ Features
 -
 * Provides a **fail-closed**, anti-leak VPN tunnel environment
 * Isolates the tunnel client within a dedicated Proxy VM
-* Isolates local VM programs from network
+* Isolates programs local to VPN VM from network
 * Separate firewall VM not required
 
 ### Easy setup
@@ -21,12 +21,13 @@ Features
   * Uses configuration files from VPN service provider
   * Less risk of configuration errors
 
-### New in this version, v1.4 beta4
+### New in this version, v1.4
   * Qubes 4.0 support
   * Anti-leak for IPv6
   * All DNS requests re-addressed to VPN's DNS
   * Firewall integrity checked before connecting
   * Quicker re-connection
+  * Supports passwordless and cert authentication
 
 ---
 
@@ -85,7 +86,7 @@ Technical notes
 
 ### Operating system support
 
-Qubes-vpn-support is tested to run on Debian 9 and Fedora 26 template-based VMs under Qubes OS releases 3.2 and 4.0. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor.
+Qubes-vpn-support is tested to run on Debian 9 and Fedora 28 template-based VMs under Qubes OS releases 3.2 and 4.0. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor.
 
 Note that upcoming VPN tunnel support packaged with Qubes OS will likely contain most
 of the features in Qubes-vpn-support v1.4. Therefore, most users should
@@ -105,7 +106,7 @@ consider using the Qubes built-in feature instead when it becomes available. Thi
 
 * For manual DNS testing you can set DNS addresses in a CLI with:
   ```
-  export vpn_dns="dnsaddress1 dnsaddress2"
+  export vpn_dns="<dnsaddress1> <dnsaddress2>"
   sudo /rw/config/vpn/qubes-vpn-ns up
   ```
 
@@ -119,9 +120,9 @@ consider using the Qubes built-in feature instead when it becomes available. Thi
 Qubes-vpn-support can handle either Tor-over-VPN (configuring sys-whonix `netvm` setting to use VPN VM) or the reverse, VPN-over-Tor (configuring VPN VM `netvm` setting to use sys-whonix). The latter requires the VPN client to be configured for TCP instead of UDP protocol, and a different port number such as 443 may be required by your VPN provider; For openvpn this can all be specified with the `remote` directive in the config file.
 
 ### Using clients other than OpenVPN
-The main issue with using another client is how you run it. For standalone configs, you can add a systemd .service file to /rw/config and adjust rc.local to use that instead. See the supplied .service file as an example of running under the `qvpn` group. For template installations, adding a .conf file under /lib/systemd/system/qubes-vpn-handler.d is sufficient.
+The main issue with using another client is how you run it. In most cases, adding a .conf file under qubes-vpn-handler.d to change the relevant variables and options should be sufficient.
 
-Passing the DNS addresses to `qubes-vpn-ns` is another issue: If your client doesn't automatically pass `foreign_option` vars in the same format as openvpn, then use the `vpn_dns` environment variable as explained in the script comments.
+Passing the DNS addresses to `qubes-vpn-ns` is another issue: If your client doesn't automatically pass `foreign_option` vars in the same format as openvpn, then on connection set the `vpn_dns` environment variable to one or more DNS addresses separated by a space.
 
 Since it is the job of a VPN vendor to focus tightly on __link__ security, you should be wary of VPN clients that try to manipulate iptables directly to secure the system's overall communications profile; they probably don't take Qubes' network topology into account. Normally, security should be added to a VPN setup from the OS or specialty scripts (like these) or by the admins and users themselves. An exception to this is the LEAP bitmask client, which alters iptables with its own anti-leak rules that account for Qubes.
 
@@ -151,13 +152,13 @@ A change was made in 1.4beta2 to ensure that misconfiguration or malware in an a
 ### Basic concepts
 
 * The VPN VM is generally trusted. It is assumed its other programs won't try to impersonate openvpn (send data via port 1194), for example.
-* Everything outside the VPN VM and VPN server is essentially untrusted (from the VPN client's point of view): This means the sys-net, local router, ISP and downstream VMs are potential threats. (This doesn't affect the users POV of whether individual appVMs or sites are trusted.)
+* Everything outside the VPN VM and VPN server is essentially untrusted (from the VPN client's point of view): This means the sys-net, local router or Wifi access point, ISP and downstream VMs are potential threats. (This doesn't affect the users POV of whether individual appVMs or sites are trusted.)
 * Everything that is downstream from VPN VM communicates through the VPN tunnel only.
 * The purpose of the programs in the VPN VM is to support the creation of the VPN link. Their net access is either null or clearnet only; they should not send packets through the VPN tunnel and potentially get published.
 * Configuration of the VPN client details (server address, protocols, etc) should be downloaded from the VPN provider's support page; the user can simply drop the config file into the /rw/config/vpn folder and rename it.
 
 ### Releases
-v1.4 beta5, June 2018
+v1.4 rc1, July 2018
 
 v1.3 beta, July 2017
 

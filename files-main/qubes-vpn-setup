@@ -13,20 +13,27 @@ do_userpass () {
 # Need bash for password prompt
 do_userpass_bash () {
     echo
-    read -p  "VPN/tunnel username: " username
-    read -s -p "VPN/tunnel password: " upassword
+    echo "Enter VPN/tunnel login credentials."
+    echo "Leave blank if not required..."
+    echo
+    read -p  "Username: " username
+    read -s -p "Password: " upassword
     echo
     echo
-    echo "$username" >$tmppath.tmp
-    echo "$upassword" >>$tmppath.tmp
-    chmod 600 $tmppath.tmp
-    mv $tmppath.tmp $tmppath
-#    read -N 1 -p "Save login info (Y/N)? " answer
-#    if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-        cp -a $tmppath $qvpnpath/$upfile
-        echo -e "\nLogin info saved to $qvpnpath/$upfile"
-        sleep 1s
-#    fi
+    if [[ -z $username && -z $upassword ]]; then
+      touch $qvpnpath/no-$upfile
+      rm -f $qvpnpath/$upfile
+      echo "Password login deactivated."
+    else
+      rm -f $qvpnpath/no-$upfile
+      echo "$username" >$tmppath.tmp
+      echo "$upassword" >>$tmppath.tmp
+      chmod 600 $tmppath.tmp
+      mv $tmppath.tmp $tmppath
+      cp -a $tmppath $qvpnpath/$upfile
+      echo -e "\nLogin info saved to $qvpnpath/$upfile"
+    fi
+    sleep 1s
     echo
 }
 
@@ -59,7 +66,7 @@ case "$1" in
 ;;
 
 --pre-start)
-    if [ ! -f $qvpnpath/$upfile ]; then
+    if [ ! -f $qvpnpath/$upfile ] && [ ! -f $qvpnpath/no-$upfile ]; then
         if [ ! -f /tmp/qvpn-askpass ]; then
             systemd-run --unit=qvpn-askpass -E DISPLAY=:0 sh -c \
             'sleep 2s; /usr/bin/xterm \
@@ -68,17 +75,30 @@ case "$1" in
     elif [ ! -f $tmppath ]; then
         cp -aL $qvpnpath/$upfile $tmppath.tmp
         mv $tmppath.tmp $tmppath
+
     fi
-    if [ -n "$filter_opts" ]; then
-        # workaround for option parser bugs and overrides:
-        # process config to remove options.
-        grep -Ev '^[[:space:]]*('"$filter_opts"')[[:space:]]*' \
-          $qvpnpath/vpn-client.conf  >/tmp/vpn-client.conf
-    else
-        cp -aL $qvpnpath/vpn-client.conf /tmp
+        if [ -n "$filter_opts" ]; then
+            # workaround for option parser bugs and overrides:
+            # process config to remove options.
+            grep -Ev '^[[:space:]]*('"$filter_opts"')[[:space:]]*' \
+              $qvpnpath/vpn-client.conf  >/tmp/vpn-client.conf
+        else
+            cp -aL $qvpnpath/vpn-client.conf /tmp
+        fi
+        sync
+        su - -c 'notify-send "$(hostname): Ready to start link."' user
+##    fi
+;;
+
+--start-exec)
+    if [ -f $qvpnpath/no-$upfile ]; then
+        auth_opt=""
+        auth_param=""
     fi
-    sync
-    su - -c 'notify-send "$(hostname): Ready to start link."' user
+    echo EXEC  $client_cmd $client_opt1 $client_opt2 $client_opt3 $client_opt4 \
+      $client_opt5 $auth_opt
+    eval $client_cmd $client_opt1 $client_opt2 $client_opt3 $client_opt4 \
+      $client_opt5 $auth_opt
 ;;
 
 --post-start)
