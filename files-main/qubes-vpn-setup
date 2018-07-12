@@ -92,13 +92,13 @@ case "$1" in
 
 --start-exec)
     if [ -f $qvpnpath/no-$upfile ]; then
-        auth_opt=""
+        userpassword_opt=""
         auth_param=""
     fi
     echo EXEC  $client_cmd $client_opt1 $client_opt2 $client_opt3 $client_opt4 \
-      $client_opt5 $auth_opt
+      $client_opt5 $userpassword_opt
     eval $client_cmd $client_opt1 $client_opt2 $client_opt3 $client_opt4 \
-      $client_opt5 $auth_opt
+      $client_opt5 $userpassword_opt
 ;;
 
 --post-start)

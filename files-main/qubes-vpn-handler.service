@@ -24,7 +24,7 @@ Environment="client_opt2=--mlock --ping 10 --ping-restart 42 --connect-retry 5 3
 Environment="client_opt3=--connect-retry-max 7 --resolv-retry 15 --group qvpn"
 Environment='client_opt4=--script-security 2 --up "/usr/lib/qubes/qubes-vpn-ns up" --down "/usr/lib/qubes/qubes-vpn-ns down"'
 Environment="client_opt5="
-Environment="auth_opt=--auth-user-pass /tmp/userpassword.txt"
+Environment="userpassword_opt=--auth-user-pass /tmp/userpassword.txt"
 
 ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --check-firewall
 ExecStartPre=/usr/lib/qubes/qubes-vpn-setup --pre-start

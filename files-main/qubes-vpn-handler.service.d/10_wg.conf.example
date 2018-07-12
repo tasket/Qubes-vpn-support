@@ -17,7 +17,7 @@ Environment="client_opt3="
 Environment="client_opt4="
 Environment="client_opt5="
 
-Environment="auth_opt="
+Environment="userpassword_opt="
 
 # Override wg-quick DNS functions:
 ExecStartPre=/bin/cp -a /usr/bin/wg-quick /tmp
