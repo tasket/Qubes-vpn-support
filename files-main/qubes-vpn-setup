@@ -72,22 +72,21 @@ case "$1" in
             'sleep 2s; /usr/bin/xterm \
             -T "VPN Login" -e /usr/lib/qubes/qubes-vpn-setup --xterm'
         fi
-    elif [ ! -f $tmppath ]; then
+    elif [ ! -f $tmppath ] && [ ! -f $qvpnpath/no-$upfile ]; then
         cp -aL $qvpnpath/$upfile $tmppath.tmp
         mv $tmppath.tmp $tmppath
 
     fi
-        if [ -n "$filter_opts" ]; then
-            # workaround for option parser bugs and overrides:
-            # process config to remove options.
-            grep -Ev '^[[:space:]]*('"$filter_opts"')[[:space:]]*' \
-              $qvpnpath/vpn-client.conf  >/tmp/vpn-client.conf
-        else
-            cp -aL $qvpnpath/vpn-client.conf /tmp
-        fi
-        sync
-        su - -c 'notify-send "$(hostname): Ready to start link."' user
-##    fi
+    if [ -n "$filter_opts" ]; then
+        # workaround for option parser bugs and overrides:
+        # process config to remove options.
+        grep -Ev '^[[:space:]]*('"$filter_opts"')[[:space:]]*' \
+          $qvpnpath/vpn-client.conf  >/tmp/vpn-client.conf
+    else
+        cp -aL $qvpnpath/vpn-client.conf /tmp
+    fi
+    sync
+    su - -c 'notify-send "$(hostname): Ready to start link."' user
 ;;
 
 --start-exec)
