@@ -1,4 +1,4 @@
-## Example wireguard config:
+## Example wireguard config (experimental):
 
 [Service]
 Type=oneshot

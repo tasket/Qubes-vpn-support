@@ -8,24 +8,15 @@
 ##
 ## Use 'vpn_dns' environment var as override/alternative.
 ## In openvpn config, format is: setenv vpn_dns 'X.X.X.X  Y.Y.Y.Y [...]'
+##
+## Christopher Laprise, 2018  -  https://github.com/tasket
 
 set -e
 export PATH="$PATH:/usr/sbin:/sbin:/bin"
 nspath=/var/run/qubes/qubes-vpn-ns
 
 case "$1" in
-'test-up')
-
-##  Use test-up parameter to test your basic VPN link before enabling firewall script
-##  (do NOT use beyond testing period). Type-in your nameserver address:
-    cp -a /etc/resolv.conf /etc/resolv.vpnbak
-    echo "nameserver TYPE-YOUR-DNS-ADDRESS-HERE" >/etc/resolv.conf
-    /usr/lib/qubes/qubes-setup-dnat-to-ns
-    su - -c 'notify-send "$(hostname): LINK IS UP." --icon=network-idle' user
-    exit 0
-
-;;
-up)
+up|test-up)
     rm -f $nspath
     if [[ -z "$vpn_dns" ]] ; then
         # Parses DHCP option variables to set DNS address translation:
@@ -35,6 +26,9 @@ up)
             if [ ${fops[1]} == "DNS" ] ; then vpn_dns="${fops[2]} $vpn_dns" ; fi
         done
     fi
+
+;;&
+up)
     if [[ -n "$vpn_dns" ]] ; then
         # Set DNS address translation in firewall:
         echo "$vpn_dns " >$nspath
@@ -56,10 +50,24 @@ up)
         su - -c 'notify-send "$(hostname): LINK UP, NO DNS!" --icon=dialog-error' user
     fi
 
-    ;;
+;;
+test-up)
+
+##  Use test-up parameter to test your basic VPN link before enabling firewall script.
+##  Do NOT use beyond testing period.
+    if [[ -z "$vpn_dns" ]]; then echo "NO DNS ADDRESS FOUND."; exit 0; fi
+    [ -e /etc/resolv.vpnbak ] || cp -a /etc/resolv.conf /etc/resolv.vpnbak
+    rm /etc/resolv.conf
+    for DNS in $vpn_dns; do
+        echo "nameserver $DNS" >>/etc/resolv.conf
+    done
+    /usr/lib/qubes/qubes-setup-dnat-to-ns
+    su - -c 'notify-send "$(hostname): TEST LINK IS UP." --icon=network-idle' user
+
+;;
 down)
     iptables -t nat -F PR-QBS
     su - -c 'notify-send "$(hostname): LINK IS DOWN !" --icon=dialog-error' user
 
-    ;;
+;;
 esac

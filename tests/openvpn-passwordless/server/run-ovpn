@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Run test by placing this server config in an upstream proxyVM
+# and the client config with Qubes-vpn-support in downstream proxyVM.
+# The 'remote' IP address must be adjusted for your particular VM pair.
+
+openvpn  --remote  10.137.0.25 --dev tun1 --ifconfig 10.4.0.2 10.4.0.1  --tls-server  --dh  sample-keys/dh2048.pem   --ca   sample-keys/ca.crt   --cert sample-keys/server.crt --key sample-keys/server.key --reneg-sec 60

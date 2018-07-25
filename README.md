@@ -21,13 +21,13 @@ Features
   * Uses configuration files from VPN service provider
   * Less risk of configuration errors
 
-### New in this version, v1.4
+### New in this version, v1.4.0
   * Qubes 4.0 support
   * Anti-leak for IPv6
   * All DNS requests re-addressed to VPN's DNS
   * Firewall integrity checked before connecting
   * Quicker re-connection
-  * Supports passwordless and cert authentication
+  * Supports passwordless cert authentication
 
 ---
 
@@ -40,25 +40,27 @@ Quickstart setup guide
 
    Next, add `vpn-handler-openvpn` to the proxyVM's Settings / Services tab. Do not add other network services such as Network Manager.
 
-2. Transfer Qubes-vpn-support folder to the template or proxy VM of your choice, then run install. You will be prompted for your VPN login credentials either in this step (proxyVM) or next step (template):
+2. Copy the VPN config files from your service provider to the proxyVM's /rw/config/vpn folder, then copy or link the desired config to 'vpn-client.conf':
+
+   ```
+   cd /rw/config/vpn
+   sudo unzip ~/ovpn-configs-example.zip
+   sudo ln -s US_East.ovpn vpn-client.conf
+   ```
+
+   Note: This is a good point to test the connection. See the Testing section below for tips.
+
+3. Decide whether you want a template or proxyVM-only installation. Copy the Qubes-vpn-support folder to the template or proxy VM, then run install. You will be prompted for your VPN login credentials either in this step (proxyVM) or next step (template):
 
    ```
    cd Qubes-vpn-support
    sudo bash ./install
    ```
 
-3. If installed to a template, shutdown the templateVM then start the proxyVM and finish setup with:
+4. If installed to a template, shutdown the templateVM then start the proxyVM and finish setup with:
 
    ```
    sudo /usr/lib/qubes/qubes-vpn-setup --config
-   ```
-
-4. Copy the VPN config files from your service provider to the proxyVM's /rw/config/vpn folder, then copy or link the desired config to 'vpn-client.conf':
-
-   ```
-   cd /rw/config/vpn
-   sudo unzip ~/ovpn-configs-example.zip
-   sudo ln -s US_East.ovpn vpn-client.conf
    ```
 
 Restart the proxyVM. This will autostart the VPN client and you should see a popup notification 'LINK IS UP'!
@@ -97,34 +99,34 @@ consider using the Qubes built-in feature instead when it becomes available. Thi
 
 * It is assumed that 'tun' mode will be used by the VPN as this is by far the most common. The 'tap' mode may work, however it is currently untested.
 
-* Routing details can viewed in the service log if required for troubleshooting. They will appear as references to "route" and "gateway".
+* Routing details are determined by the VPN provider and can be viewed in the service log if required for troubleshooting. They will appear as references to "route" and "gateway".
 
 ### Testing
 * Connections can be manually tested with a command like `sudo openvpn --cd  /rw/config/vpn --config vpn-client.conf --auth-user-pass userpassword.txt` but using `systemctl status qubes-vpn-handler` and `journalctl` commands also work to monitor auto-started connections.
 
-* You should be able to use `ping` and `traceroute` from a downstream appVM after connecting.
-
 * For manual DNS testing you can set DNS addresses in a CLI with:
   ```
-  export vpn_dns="<dnsaddress1> <dnsaddress2>"
-  sudo /rw/config/vpn/qubes-vpn-ns up
+  # Use 'up' for downstream VMs or 'test-up' for internal proxyVM tests
+  sudo env vpn_dns="<dnsaddress1> <dnsaddress2>" /usr/lib/qubes/qubes-vpn-ns up
   ```
 
-  Similarly, you can use `vpn_dns` to permanently override the DNS that your provider assigns. Just use openvpn's `setenv` in the config file like this:
+  Similarly, you can use `vpn_dns` to permanently override the DNS that your provider assigns. For openvpn use `setenv` in the config file like this:
   ```
   setenv vpn_dns 'dnsaddress1 dnsaddress2'
 
   ```
 
+* You should be able to use `ping` and `traceroute` from a downstream appVM after connecting.
+
 ### Tor/Whonix notes
 Qubes-vpn-support can handle either Tor-over-VPN (configuring sys-whonix `netvm` setting to use VPN VM) or the reverse, VPN-over-Tor (configuring VPN VM `netvm` setting to use sys-whonix). The latter requires the VPN client to be configured for TCP instead of UDP protocol, and a different port number such as 443 may be required by your VPN provider; For openvpn this can all be specified with the `remote` directive in the config file.
 
 ### Using clients other than OpenVPN
-The main issue with using another client is how you run it. In most cases, adding a .conf file under qubes-vpn-handler.d to change the relevant variables and options should be sufficient.
+The main issue with using another client is how you run it. In most cases, adding a conf file under qubes-vpn-handler.d to change the relevant variables and options should be sufficient. An experimental conf for wireguard is included and can be activated by removing '.example' from the filename; it has been tested with Mullvad.net.
 
-Passing the DNS addresses to `qubes-vpn-ns` is another issue: If your client doesn't automatically pass `foreign_option` vars in the same format as openvpn, then on connection set the `vpn_dns` environment variable to one or more DNS addresses separated by a space.
+Passing the DNS addresses to `qubes-vpn-ns` is another issue: If your client doesn't automatically pass `foreign_option` vars in the same format as openvpn, then on connection set the `vpn_dns` environment variable to one or more DNS addresses separated by a space. In the wireguard example this is accomplished by adding override functions to `wg-quick`.
 
-Since it is the job of a VPN vendor to focus tightly on __link__ security, you should be wary of VPN clients that try to manipulate iptables directly to secure the system's overall communications profile; they probably don't take Qubes' network topology into account. Normally, security should be added to a VPN setup from the OS or specialty scripts (like these) or by the admins and users themselves. An exception to this is the LEAP bitmask client, which alters iptables with its own anti-leak rules that account for Qubes.
+Since it is the job of a VPN vendor to focus tightly on __link__ security, you should be wary of VPN clients that manipulate iptables or nftables in an attempt to secure the system's communications profile (i.e. prevent leaks); they probably don't take Qubes' unusual network topology into account in which case anti-leak would fail. Normally, security should be added to a VPN setup from the OS or specialty scripts (like these) or by the admins and users themselves. An exception to this is the LEAP bitmask client, which alters iptables with its own anti-leak rules that account for Qubes.
 
 ### Link security
 A secure VPN service will use a certificate configuration, usually meaning `remote-cert-tls` is used in the openvpn config; This is the best way to protect against MITM attacks and ensure you are really connecting to your VPN service provider. Conversely, restricting access to particular addresses via the firewall is probably not going to substantially improve link security as IP addresses can be spoofed by an attacker.
@@ -158,7 +160,7 @@ A change was made in 1.4beta2 to ensure that misconfiguration or malware in an a
 * Configuration of the VPN client details (server address, protocols, etc) should be downloaded from the VPN provider's support page; the user can simply drop the config file into the /rw/config/vpn folder and rename it.
 
 ### Releases
-v1.4 rc1, July 2018
+v1.4 rc2, July 2018
 
 v1.3 beta, July 2017
 
