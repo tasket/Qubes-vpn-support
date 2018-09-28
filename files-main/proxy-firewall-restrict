@@ -18,10 +18,15 @@ correct_ips() {
     if [ -f $nspath ]; then
         iptables-save -t filter >/tmp/qvpn-fw-filter
         read vpn_dns <$nspath ; nsend=1
+        q_addr=""
         for DNS in $vpn_dns; do
             sed -i -r 's/(-A FORWARD.+-d )10\.137\.[0-9]+\.'$nsend'(.+dport 53 -j ACCEPT)$/\1'$DNS'\2/' \
                 /tmp/qvpn-fw-filter
             nsend=254
+            #workaround for issue #25:
+            iptables -t nat -I PR-QBS $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
+            iptables -t nat -I PR-QBS $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
+            q_addr="-d $NS1"
         done
         iptables-restore -T filter </tmp/qvpn-fw-filter
     fi
