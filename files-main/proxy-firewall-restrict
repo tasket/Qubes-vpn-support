@@ -40,12 +40,12 @@ ip6tables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
 
 
 ###-------------------------------------------------------------------###
-# This section executed only if a vpn-handler* service is active:
-if ! ls /var/run/qubes-service/vpn-handler* 1> /dev/null 2>&1; then
+# This section executed only if vpn-handler-egress service _not_ enabled:
+if [ -e /var/run/qubes-service/vpn-handler-egress ]; then
     exit 0
 fi
 
-# Prevent accidental communications from within VPN VM to net;
+# Extra restriction prevents accidental communications from within VPN VM to net;
 # The gid-owner rule requires net programs be run with group ID 'qvpn'
 # to allow outbound traffic.
 iptables -P OUTPUT DROP

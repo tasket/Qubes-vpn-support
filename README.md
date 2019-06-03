@@ -22,7 +22,7 @@ Features
   * Firewall integrity checked before connecting
   * Quicker re-connection
   * Supports passwordless cert authentication
-  * Workaround for autostart issue #39
+  * Control over firewall egress
 
 ---
 
@@ -140,18 +140,16 @@ A secure VPN service will use a certificate configuration, usually meaning `remo
 ### About proxy-firewall-restrict
 This script builds on the internal rules already set by Qubes firewall in a Proxy VM, and puts the VM in a very locked-down state for networking.
 
-On Qubes 3.x this script is linked to qubes-firewall-user-script. Adding your own iptables rules is most easily done by copying the original script to /rw/config and inserting new rules near the top. The section that 'Corrects nameserver IPs' corrects a Qubes 3.x issue that prevented the VPN VM from being used as a "Deny except" whitelist firewall.
-
 On Qubes 4.x this script is linked to /rw/config/qubes-firewall.d/90_tunnel-restrict and you can add a custom script in the qubes-firewall.d folder to include your own rules.
 
-When any `vpn-handler*` Qubes service is active, outgoing traffic is controlled by group ID of the running process; only `qvpn` group is granted access. So even if your VPN provider has dozens of IPs randomly-assigned via DNS or uses a client other than openvpn then no editing of the firewall script should be necessary. However, this group-based control can be safely removed if necessary by simply changing OUTPUT policy to ACCEPT; the restriction exists only to prevent accidental clearnet access from within the VPN VM and does not affect anti-leak rules for connected downstream VMs.
+Normally, outgoing traffic is controlled by group ID of the running process; only `qvpn` group is granted access. However, this restriction can be safely removed if necessary by enabling the Qubes service 'vpn-handler-egress'; the restriction exists only to prevent accidental clearnet access from within the VPN VM and does not affect anti-leak rules for connected downstream VMs.
 
 If `proxy-firewall-restrict` is used to secure another connection scheme (i.e. Network Manager), this arrangement should work as long as a `vpn-handler*` service is *not* specified. Otherwise, Network Manager would need some way of running the VPN client under the `qvpn` group.
 
 Also, local traffic to and from tun0 and vif+ is disallowed. However, the current version allows ICMP packets so if you think blocking these is necessary you can un-comment the ICMP section of the script.
 
 ### About qubes-vpn-ns
-This handler script is tested to work with OpenVPN v2.3 and v2.4, but should be easily adaptable to other VPN clients with one or two variable-handling changes.
+This handler script is tested to work with OpenVPN v2.4, but should be easily adaptable to other VPN clients with one or two variable-handling changes.
 
 DNS addresses are automatically acquired from DHCP without altering the local resolv.conf settings, so the VPN's DNS is normally only available to attached downstream VMs. This is intended as a privacy measure to prevent any inadvertant access by local (VPN VM) programs over the VPN tunnel.
 
