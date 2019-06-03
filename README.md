@@ -1,12 +1,6 @@
 # Qubes-vpn-support
 Secure VPN VMs in [Qubes OS](https://www.qubes-os.org)
 
----
----
-#### Help test the new VPN software being submitted for inclusion with Qubes OS:
-#### See [qubes-tunnel](https://github.com/tasket/qubes-tunnel) for info!
----
----
 
 Features
 -
@@ -21,13 +15,14 @@ Features
   * Uses configuration files from VPN service provider
   * Less risk of configuration errors
 
-### New in this version, v1.4.0
-  * Qubes 4.0 support
+### New in this version, v1.4.1
+  * Qubes 4.0.1 support
   * Anti-leak for IPv6
-  * All DNS requests re-addressed to VPN's DNS
+  * All DNS requests forced to chosen VPN DNS
   * Firewall integrity checked before connecting
   * Quicker re-connection
   * Supports passwordless cert authentication
+  * Workaround for autostart issue #39
 
 ---
 
@@ -45,10 +40,10 @@ Quickstart setup guide
    ```
    cd /rw/config/vpn
    sudo unzip ~/ovpn-configs-example.zip
-   sudo ln -s US_East.ovpn vpn-client.conf
+   sudo cp US_East.ovpn vpn-client.conf
    ```
 
-   Note: This is a good point to test the connection. See the Testing section below for tips.
+   Note: This is a good point to test the connection. See the Link Testing section below for tips.
 
 3. Decide whether you want a template or proxyVM-only installation. Copy the Qubes-vpn-support folder to the template or proxy VM, then run install. You will be prompted for your VPN login credentials either in this step (proxyVM) or next step (template):
 
@@ -73,6 +68,11 @@ Download the new Qubes-vpn-support release from github to your VM as before, the
 
 ### Locating and downloading VPN config files
 
+VPN configuration files are usually available from the VPN provider's support,
+download or account pages as "Linux openvpn" or "Linux wireguard".
+If they offer an "App", do not download this as it
+won't work with Qubes-vpn-support.
+
 Some popular VPN providers:
 * PIA
       https://www.privateinternetaccess.com/pages/client-support/#fifth
@@ -88,11 +88,7 @@ Technical notes
 
 ### Operating system support
 
-Qubes-vpn-support is tested to run on Debian 9 and Fedora 28 template-based VMs under Qubes OS releases 3.2 and 4.0. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor.
-
-Note that upcoming VPN tunnel support packaged with Qubes OS will likely contain most
-of the features in Qubes-vpn-support v1.4. Therefore, most users should
-consider using the Qubes built-in feature instead when it becomes available. This project will continue for people looking to experiment with custom tweaks and new features.
+Qubes-vpn-support is tested to run on Debian 9, 10 and Fedora 30 template-based VMs under Qubes OS 4.0.1. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor.
 
 ### OpenVPN
 * The OpenVPN version tested here is 2.4.x.
@@ -101,8 +97,18 @@ consider using the Qubes built-in feature instead when it becomes available. Thi
 
 * Routing details are determined by the VPN provider and can be viewed in the service log if required for troubleshooting. They will appear as references to "route" and "gateway".
 
-### Testing
-* Connections can be manually tested with a command like `sudo openvpn --cd  /rw/config/vpn --config vpn-client.conf --auth-user-pass userpassword.txt` but using `systemctl status qubes-vpn-handler` and `journalctl` commands also work to monitor auto-started connections.
+### Wireguard VPN
+* Experimental support for wireguard has been added. See the
+wiki [for directions](https://github.com/tasket/Qubes-vpn-support/wiki/Wireguard-VPN-connections-in-Qubes-OS)
+that include specific installation steps for wireguard in Debian along with Qubes-vpn-support.
+
+### Link Testing
+* Connections can be manually tested with a command like `sudo openvpn --cd  /rw/config/vpn --config vpn-client.conf --auth-user-pass userpassword.txt` _before_ the script 'install' step. This is a good idea because
+it shows whether or not the basic link is working before Qubes-specific scripts
+become a factor.
+
+* After script installation, service commands such as `systemctl status qubes-vpn-handler` and `journalctl`
+may be used to monitor auto-started connections.
 
 * For manual DNS testing you can set DNS addresses in a CLI with:
   ```
@@ -160,7 +166,9 @@ A change was made in 1.4beta2 to ensure that misconfiguration or malware in an a
 * Configuration of the VPN client details (server address, protocols, etc) should be downloaded from the VPN provider's support page; the user can simply drop the config file into the /rw/config/vpn folder and rename it.
 
 ### Releases
-v1.4 rc2, July 2018
+v1.4.1, June 2019
+
+v1.4.0, Jan. 2019
 
 v1.3 beta, July 2017
 

@@ -11,27 +11,6 @@
 
 groupadd -rf qvpn && sync
 
-correct_ips() {
-    # Correct the 10.137.x.x nameserver IPs in FORWARD chain (Qubes 3.x)
-    . /var/run/qubes/qubes-ns
-    nspath=/var/run/qubes/qubes-vpn-ns
-    if [ -f $nspath ]; then
-        iptables-save -t filter >/tmp/qvpn-fw-filter
-        read vpn_dns <$nspath ; nsend=1
-        q_addr=""
-        for DNS in $vpn_dns; do
-            sed -i -r 's/(-A FORWARD.+-d )10\.137\.[0-9]+\.'$nsend'(.+dport 53 -j ACCEPT)$/\1'$DNS'\2/' \
-                /tmp/qvpn-fw-filter
-            nsend=254
-            #workaround for issue #25:
-            iptables -t nat -I PR-QBS $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
-            iptables -t nat -I PR-QBS $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
-            q_addr="-d $NS1"
-        done
-        iptables-restore -T filter </tmp/qvpn-fw-filter
-    fi
-}
-
 # Set firewall restriction policy
 
 # Stop all leaks between downstream (vif+) and upstream (Internet eth0):
@@ -53,9 +32,6 @@ ip6tables -I INPUT -i tun+ -j DROP
 # Allow established v6 traffic (v4 rule already present):
 #iptables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
 ip6tables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
-
-# Fix DNS IPs if QBS-FORWARD not present (Qubes ver < 4)
-iptables -L QBS-FORWARD || correct_ips
 
 # Disable icmp packets
 #if iptables -C INPUT -p icmp -j ACCEPT

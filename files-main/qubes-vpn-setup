@@ -39,15 +39,10 @@ do_userpass_bash () {
 
 # needs source dir passed as first arg
 firewall_link () {
-    if iptables -L QBS-FORWARD >/dev/null; then
     # firewall for Qubes 4
-        mkdir -p /rw/config/qubes-firewall.d
-        ln -s -f $1/proxy-firewall-restrict \
+    mkdir -p /rw/config/qubes-firewall.d
+    ln -s -f $1/proxy-firewall-restrict \
     /rw/config/qubes-firewall.d/90_tunnel-restrict
-    else
-        ln -s -f $1/proxy-firewall-restrict \
-    /rw/config/qubes-firewall-user-script
-    fi
 }
 
 
@@ -180,7 +175,7 @@ case "$1" in
 ;;
 
 --version)
-    echo "1.4.0"
+    echo "1.4.1"
 ;;
 
 esac

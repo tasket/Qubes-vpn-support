@@ -9,7 +9,7 @@
 ## Use 'vpn_dns' environment var as override/alternative.
 ## In openvpn config, format is: setenv vpn_dns 'X.X.X.X  Y.Y.Y.Y [...]'
 ##
-## Christopher Laprise, 2018  -  https://github.com/tasket
+## Christopher Laprise, 2018-2019  -  https://github.com/tasket
 
 set -e
 export PATH="$PATH:/usr/sbin:/sbin:/bin"
@@ -35,18 +35,13 @@ up)
         echo "$vpn_dns " >$nspath
         echo "Using DNS servers $vpn_dns"
         iptables -t nat -F PR-QBS
-        # Securely restart firewall (Qubes ver <4 only)
-        if ! iptables -L QBS-FORWARD; then
-            systemctl restart qubes-firewall
-        else
-            . /var/run/qubes/qubes-ns
-            q_addr=""
-            for DNS in $vpn_dns; do
-                iptables -t nat -I PR-QBS $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
-                iptables -t nat -I PR-QBS $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
-                q_addr="-d $NS1"
-            done
-        fi
+        . /var/run/qubes/qubes-ns
+        q_addr=""
+        for DNS in $vpn_dns; do
+            iptables -t nat -I PR-QBS $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
+            iptables -t nat -I PR-QBS $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
+            q_addr="-d $NS1"
+        done
         su - -c 'notify-send "$(hostname): LINK IS UP." --icon=network-idle' user
     else
         su - -c 'notify-send "$(hostname): LINK UP, NO DNS!" --icon=dialog-error' user
