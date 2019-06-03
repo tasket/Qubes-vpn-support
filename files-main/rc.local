@@ -2,7 +2,7 @@
 
 # Install group and scripts
 groupadd -rf qvpn
-cp -a /rw/config/qubes-vpn-handler.service* /lib/systemd/system
+cp -a /rw/config/qubes-vpn-handler.* /lib/systemd/system
 sync
 ln -s -f /rw/config/qubes-vpn-ns /usr/lib/qubes/qubes-vpn-ns
 ln -s -f /rw/config/qubes-vpn-setup /usr/lib/qubes/qubes-vpn-setup
@@ -10,7 +10,7 @@ ln -s -f /rw/config/qubes-vpn-setup /usr/lib/qubes/qubes-vpn-setup
 # Start tunnel service
 systemctl daemon-reload
 systemctl enable qubes-vpn-handler.service
-systemctl --no-block start qubes-vpn-handler.service
+systemctl --no-block start qubes-vpn-handler.timer
 
 exit 0
 
