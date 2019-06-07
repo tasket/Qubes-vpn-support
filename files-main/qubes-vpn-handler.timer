@@ -1,8 +1,0 @@
-[Unit]
-Description=Start vpn
-
-[Timer]
-OnBootSec=1
-
-[Install]
-WantedBy=timers.target

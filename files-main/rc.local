@@ -10,7 +10,7 @@ ln -s -f /rw/config/qubes-vpn-setup /usr/lib/qubes/qubes-vpn-setup
 # Start tunnel service
 systemctl daemon-reload
 systemctl enable qubes-vpn-handler.service
-systemctl --no-block start qubes-vpn-handler.timer
+systemctl --no-block start qubes-vpn-handler.service
 
 exit 0
 
