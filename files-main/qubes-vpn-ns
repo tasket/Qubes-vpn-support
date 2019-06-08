@@ -15,6 +15,14 @@ set -e
 export PATH="$PATH:/usr/sbin:/sbin:/bin"
 nspath=/var/run/qubes/qubes-vpn-ns
 rm -f $nspath
+hostname=$(hostname)
+
+do_notify() {
+    if [ ! -e /etc/fedora-release ]; then
+        echo \'"notify-send \"$hostname: $1\"" --icon=$2\' | xargs su - user -c
+    fi
+}
+
 
 case "$1" in
 up|test-up)
@@ -42,9 +50,9 @@ up)
             iptables -t nat -I PR-QBS $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
             q_addr="-d $NS1"
         done
-        su - -c 'notify-send "$(hostname): LINK IS UP." --icon=network-idle' user
+        do_notify "LINK IS UP." "network-idle"
     else
-        su - -c 'notify-send "$(hostname): LINK UP, NO DNS!" --icon=dialog-error' user
+        do_notify "LINK UP, NO DNS!" "dialog-error"
     fi
 
 ;;
@@ -59,12 +67,12 @@ test-up)
         echo "nameserver $DNS" >>/etc/resolv.conf
     done
     /usr/lib/qubes/qubes-setup-dnat-to-ns
-    su - -c 'notify-send "$(hostname): TEST LINK IS UP." --icon=network-idle' user
+    do_notify "TEST LINK IS UP." "network-idle"
 
 ;;
 down)
     iptables -t nat -F PR-QBS
-    su - -c 'notify-send "$(hostname): LINK IS DOWN !" --icon=dialog-error' user
+    do_notify "LINK IS DOWN !" "dialog-error"
 
 ;;
 esac

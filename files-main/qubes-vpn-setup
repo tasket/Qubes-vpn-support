@@ -5,10 +5,19 @@ export PATH="$PATH:/usr/sbin:/sbin:/bin"
 qvpnpath=/rw/config/vpn
 upfile=userpassword.txt
 tmppath=/tmp/$upfile
+hostname=$(hostname)
+
+do_notify() {
+    if [ ! -e /etc/fedora-release ]; then
+        echo \'"notify-send \"$hostname: $1\"" --icon=$2\' | xargs su - user -c
+    fi
+}
+
 
 do_userpass () {
     bash /usr/lib/qubes/qubes-vpn-setup --userpass-bash
 }
+
 
 # Need bash for password prompt
 do_userpass_bash () {
@@ -83,7 +92,9 @@ case "$1" in
         cp -aL $qvpnpath/vpn-client.conf /tmp
     fi
     sync
-    su - -c 'notify-send "$(hostname): Ready to start link."' user
+    if [ ! -e /etc/fedora-release ]; then
+        do_notify "Ready to start link."
+    fi
 ;;
 
 --start-exec)

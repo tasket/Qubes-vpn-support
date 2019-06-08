@@ -4,7 +4,7 @@ Secure VPN VMs in [Qubes OS](https://www.qubes-os.org)
 
 Features
 -
-* Provides a **fail-closed**, anti-leak VPN tunnel environment
+* Provides a **fail closed**, antileak VPN tunnel environment
 * Isolates the tunnel client within a dedicated Proxy VM
 * Isolates programs local to VPN VM from network
 * Separate firewall VM not required
@@ -12,13 +12,14 @@ Features
 ### Easy setup
   * Simple install script; No file editing or IP numbers necessary
   * Flexible installation into template or to individual proxyVMs
-  * Uses configuration files from VPN service provider
+  * Lets you 'drop in' configuration files from VPN service provider
   * Less risk of configuration errors
 
-  ### New in this version, v1.5.0
+  ### New in this version, v1.4.1
   * Qubes 4.0.1 support
   * Control over specific firewall restrictions
   * Better compatibility with MTU/fragmentation detection
+  * Work around Fedora bug, issue #39
 
   ### New in v1.4.0
   * Anti-leak for IPv6
