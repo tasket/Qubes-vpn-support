@@ -23,11 +23,8 @@ ip6tables -I FORWARD -o eth0 -j DROP
 ip6tables -I FORWARD -i eth0 -j DROP
 
 # Block INPUT from tunnel(s):
-iptables -P INPUT DROP
-iptables -I INPUT -i tun+ -j DROP
-
+iptables  -P INPUT DROP
 ip6tables -P INPUT DROP
-ip6tables -I INPUT -i tun+ -j DROP
 
 # Allow established v6 traffic (v4 rule already present):
 #iptables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
