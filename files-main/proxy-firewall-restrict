@@ -34,10 +34,15 @@ ip6tables -I INPUT -i tun+ -j DROP
 ip6tables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
 
 # Disable icmp packets
-#if iptables -C INPUT -p icmp -j ACCEPT
-#then iptables -D INPUT -p icmp -j ACCEPT
-#fi
-
+if [ -e /var/run/qubes-service/vpn-handler-no-icmp ]; then
+  iptables  -D INPUT -p icmp -j ACCEPT  || true
+  ip6tables -D INPUT -p icmp -j ACCEPT  || true
+  iptables  -I OUTPUT -p icmp -o eth0 -j DROP
+  ip6tables -I OUTPUT -p icmp -o eth0 -j DROP
+else
+  iptables  -I OUTPUT -p icmp -j ACCEPT
+  ip6tables -I OUTPUT -p icmp -j ACCEPT
+fi
 
 ###-------------------------------------------------------------------###
 # This section executed only if vpn-handler-egress service _not_ enabled:

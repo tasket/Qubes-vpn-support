@@ -15,14 +15,17 @@ Features
   * Uses configuration files from VPN service provider
   * Less risk of configuration errors
 
-### New in this version, v1.4.1
+  ### New in this version, v1.5.0
   * Qubes 4.0.1 support
+  * Control over specific firewall restrictions
+  * Better compatibility with MTU/fragmentation detection
+
+  ### New in v1.4.0
   * Anti-leak for IPv6
   * All DNS requests forced to chosen VPN DNS
   * Firewall integrity checked before connecting
   * Quicker re-connection
   * Supports passwordless cert authentication
-  * Control over firewall egress
 
 ---
 
@@ -73,7 +76,7 @@ download or account pages as "Linux openvpn" or "Linux wireguard".
 If they offer an "App", do not download this as it
 won't work with Qubes-vpn-support.
 
-Some popular VPN providers:
+Config download pages for popular VPN providers:
 * PIA
       https://www.privateinternetaccess.com/pages/client-support/#fifth
 * Mullvad (choose platform: Linux)
@@ -88,7 +91,9 @@ Technical notes
 
 ### Operating system support
 
-Qubes-vpn-support is tested to run on Debian 9, 10 and Fedora 30 template-based VMs under Qubes OS 4.0.1. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor.
+Qubes-vpn-support is tested to run on Debian 9 and 10 template-based VMs under Qubes OS 4.0.1. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor.
+
+Note that recent Fedora template versions have a [libnotify bug](https://github.com/tasket/Qubes-vpn-support/issues/39#issuecomment-499204890) that causes programs (including this one) using notifications at startup to hang.
 
 ### OpenVPN
 * The OpenVPN version tested here is 2.4.x.
@@ -102,7 +107,7 @@ Qubes-vpn-support is tested to run on Debian 9, 10 and Fedora 30 template-based 
 wiki [for directions](https://github.com/tasket/Qubes-vpn-support/wiki/Wireguard-VPN-connections-in-Qubes-OS)
 that include specific installation steps for wireguard in Debian along with Qubes-vpn-support.
 
-### Link Testing
+### Link Testing and Troubleshooting
 * Connections can be manually tested with a command like `sudo openvpn --cd  /rw/config/vpn --config vpn-client.conf --auth-user-pass userpassword.txt` _before_ the script 'install' step. This is a good idea because
 it shows whether or not the basic link is working before Qubes-specific scripts
 become a factor.
@@ -122,7 +127,11 @@ may be used to monitor auto-started connections.
 
   ```
 
-* You should be able to use `ping` and `traceroute` from a downstream appVM after connecting.
+* You should be able to use `ping` and `traceroute` from a downstream appVM without issue after connecting.
+However, doing so from
+inside the VPN VM can be an issue, since Qubes 4.0 / newer Linux appear to disregard certain rules when it
+comes to ICMP packets. In this case, you can enable the 'vpn-handler-egress' Qubes service on the VM to
+relax the output restriction which will allow you to use these commands from inside the VPN VM.
 
 ### Tor/Whonix notes
 Qubes-vpn-support can handle either Tor-over-VPN (configuring sys-whonix `netvm` setting to use VPN VM) or the reverse, VPN-over-Tor (configuring VPN VM `netvm` setting to use sys-whonix). The latter requires the VPN client to be configured for TCP instead of UDP protocol, and a different port number such as 443 may be required by your VPN provider; For openvpn this can all be specified with the `remote` directive in the config file.
@@ -137,16 +146,16 @@ Since it is the job of a VPN vendor to focus tightly on __link__ security, you s
 ### Link security
 A secure VPN service will use a certificate configuration, usually meaning `remote-cert-tls` is used in the openvpn config; This is the best way to protect against MITM attacks and ensure you are really connecting to your VPN service provider. Conversely, restricting access to particular addresses via the firewall is probably not going to substantially improve link security as IP addresses can be spoofed by an attacker.
 
-### About proxy-firewall-restrict
-This script builds on the internal rules already set by Qubes firewall in a Proxy VM, and puts the VM in a very locked-down state for networking.
+### Firewall notes
+The `proxy-firewall-restrict` script builds on the internal rules already set by Qubes firewall in a Proxy VM, and puts the VM in a very locked-down state for networking.
 
 On Qubes 4.x this script is linked to /rw/config/qubes-firewall.d/90_tunnel-restrict and you can add a custom script in the qubes-firewall.d folder to include your own rules.
 
-Normally, outgoing traffic is controlled by group ID of the running process; only `qvpn` group is granted access. However, this restriction can be safely removed if necessary by enabling the Qubes service 'vpn-handler-egress'; the restriction exists only to prevent accidental clearnet access from within the VPN VM and does not affect anti-leak rules for connected downstream VMs.
+Normally, traffic originating from the VPN VM is controlled by group ID of the running process; only `qvpn` group is granted access. However, this restriction can be safely removed if necessary as it exists only to prevent accidental clearnet access from within the VPN VM and does not affect anti-leak rules for connected downstream VMs. Enable the Qubes service 'vpn-handler-egress' for the VPN VM to disable this group restriction.
 
-If `proxy-firewall-restrict` is used to secure another connection scheme (i.e. Network Manager), this arrangement should work as long as a `vpn-handler*` service is *not* specified. Otherwise, Network Manager would need some way of running the VPN client under the `qvpn` group.
-
-Also, local traffic to and from tun0 and vif+ is disallowed. However, the current version allows ICMP packets so if you think blocking these is necessary you can un-comment the ICMP section of the script.
+ICMP packets are allowed for local traffic by default. If you think blocking ICMP is necessary you can enable
+the Qubes service 'vpn-handler-no-icmp'. Note this does not affect downstream VM (forwarded) ICMP traffic; blocking this
+can be done with the `qvm-firewall` tool.
 
 ### About qubes-vpn-ns
 This handler script is tested to work with OpenVPN v2.4, but should be easily adaptable to other VPN clients with one or two variable-handling changes.
