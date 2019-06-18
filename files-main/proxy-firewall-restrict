@@ -37,8 +37,8 @@ if [ -e /var/run/qubes-service/vpn-handler-no-icmp ]; then
   iptables  -I OUTPUT -p icmp -o eth0 -j DROP
   ip6tables -I OUTPUT -p icmp -o eth0 -j DROP
 else
-  iptables  -I OUTPUT -p icmp -j ACCEPT
-  ip6tables -I OUTPUT -p icmp -j ACCEPT
+  iptables  -I OUTPUT -p icmp -m owner --gid-owner qvpn -j ACCEPT
+  ip6tables -I OUTPUT -p icmp -m owner --gid-owner qvpn -j ACCEPT
 fi
 
 ###-------------------------------------------------------------------###

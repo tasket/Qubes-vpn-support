@@ -6,19 +6,18 @@ Features
 -
 * Provides a **fail closed**, antileak VPN tunnel environment
 * Isolates the tunnel client within a dedicated Proxy VM
-* Isolates programs local to VPN VM from network
+* Prevents configuration errors
 * Separate firewall VM not required
 
 ### Easy setup
   * Simple install script; No file editing or IP numbers necessary
-  * Flexible installation into template or to individual proxyVMs
   * Lets you 'drop in' configuration files from VPN service provider
-  * Less risk of configuration errors
+  * Flexible installation into template or to individual ProxyVMs
 
   ### New in this version, v1.4.1
   * Qubes 4.0.1 support
   * Control over specific firewall restrictions
-  * Better compatibility with MTU/fragmentation detection
+  * Better compatibility with MTU fragmentation detection
   * Work around Fedora bug, issue #39
 
   ### New in v1.4.0
@@ -33,13 +32,13 @@ Features
 Quickstart setup guide
 -
 
-1. Create a proxyVM using a template with VPN/tunnel software installed (i.e. OpenVPN). (In Qubes 4.0 a proxyVM is called an `AppVM` with the `provides network` option enabled; this document will use the more descriptive `proxyVM` term...)
+1. Create a ProxyVM using a template with VPN/tunnel software installed (i.e. OpenVPN). (In Qubes 4.0 a proxyVM is called an 'AppVM' with the `provides network` option enabled; this document will use the more descriptive 'ProxyVM' term...)
 
    Make a choice for the networking/netvm setting, such as `sys-net`.
 
    Next, add `vpn-handler-openvpn` to the proxyVM's Settings / Services tab. Do not add other network services such as Network Manager.
 
-2. Copy the VPN config files from your service provider to the proxyVM's /rw/config/vpn folder, then copy or link the desired config to 'vpn-client.conf':
+2. Copy the VPN config files from your service provider to the ProxyVM's /rw/config/vpn folder, then copy or link the desired config to 'vpn-client.conf':
 
    ```
    cd /rw/config/vpn
@@ -49,14 +48,14 @@ Quickstart setup guide
 
    Note: This is a good point to test the connection. See the Link Testing section below for tips.
 
-3. Decide whether you want a template or proxyVM-only installation. Copy the Qubes-vpn-support folder to the template or proxy VM, then run install. You will be prompted for your VPN login credentials either in this step (proxyVM) or next step (template):
+3. Decide whether you want a template or ProxyVM-only installation. Copy the Qubes-vpn-support folder to the template or proxy VM, then run install. You will be prompted for your VPN login credentials either in this step (proxyVM) or next step (template):
 
    ```
    cd Qubes-vpn-support
    sudo bash ./install
    ```
 
-4. If installed to a template, shutdown the templateVM then start the proxyVM and finish setup with:
+4. If installed to a template, shutdown the templateVM then start the ProxyVM and finish setup with:
 
    ```
    sudo /usr/lib/qubes/qubes-vpn-setup --config
@@ -94,7 +93,20 @@ Technical notes
 
 Qubes-vpn-support is tested to run on Debian 9 and 10 template-based VMs under Qubes OS 4.0.1. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor.
 
-Note that recent Fedora template versions have a [libnotify bug](https://github.com/tasket/Qubes-vpn-support/issues/39#issuecomment-499204890) that causes programs (including this one) using notifications at startup to hang.
+Note that recent Fedora templates are tested as well, but have a [libnotify 
+bug](https://github.com/tasket/Qubes-vpn-support/issues/39#issuecomment-499204890)
+that causes programs (including this one) using popup notifications at 
+startup to hang. The current workaround disables VPN status popups on 
+Fedora only.
+
+Unfortunately, this is part of a trend for Fedora. Together with Fedora's unique 
+updates vulnerability due
+to its unsigned repo manifest (which is by conscious decision!),
+its status as ground-zero for systemd development including its worst excesses 
+and bugs, and the Qubes Project's own intention to migrate away from Fedora, I feel it 
+necessary to recommend [using
+Debian](https://www.qubes-os.org/doc/templates/debian/) templates; This is a 
+general recommendation, but emphasized here due the security focus of VPNs.
 
 ### OpenVPN
 * The OpenVPN version tested here is 2.4.x.
@@ -109,12 +121,15 @@ wiki [for directions](https://github.com/tasket/Qubes-vpn-support/wiki/Wireguard
 that include specific installation steps for wireguard in Debian along with Qubes-vpn-support.
 
 ### Link Testing and Troubleshooting
+* A bug in the Fedora 30 template has made a workaround necessary which disables popup VPN status messages
+(issue #39).
+
 * Connections can be manually tested with a command like `sudo openvpn --cd  /rw/config/vpn --config vpn-client.conf --auth-user-pass userpassword.txt` _before_ the script 'install' step. This is a good idea because
 it shows whether or not the basic link is working before Qubes-specific scripts
 become a factor.
 
-* After script installation, service commands such as `systemctl status qubes-vpn-handler` and `journalctl`
-may be used to monitor auto-started connections.
+* After script installation, service commands such as `systemctl status qubes-vpn-handler` and `journalctl` may be used to monitor auto-started connections. Tools like `ping` and `traceroute`
+may also be used by running them with `sudo sg qvpn "command"` to permit them network access.
 
 * For manual DNS testing you can set DNS addresses in a CLI with:
   ```
@@ -128,11 +143,10 @@ may be used to monitor auto-started connections.
 
   ```
 
-* You should be able to use `ping` and `traceroute` from a downstream appVM without issue after connecting.
-However, doing so from
-inside the VPN VM can be an issue, since Qubes 4.0 / newer Linux appear to disregard certain rules when it
-comes to ICMP packets. In this case, you can enable the 'vpn-handler-egress' Qubes service on the VM to
-relax the output restriction which will allow you to use these commands from inside the VPN VM.
+* You should be able to use `ping` and `traceroute` commands from a downstream appVM without
+issue after connecting. However, doing so from inside the VPN VM requires granting special 
+permission to the network with `sudo sg qvpn "command"`. (Also see *Firewall notes* for other
+ways to permit outbound traffic.)
 
 ### Tor/Whonix notes
 Qubes-vpn-support can handle either Tor-over-VPN (configuring sys-whonix `netvm` setting to use VPN VM) or the reverse, VPN-over-Tor (configuring VPN VM `netvm` setting to use sys-whonix). The latter requires the VPN client to be configured for TCP instead of UDP protocol, and a different port number such as 443 may be required by your VPN provider; For openvpn this can all be specified with the `remote` directive in the config file.
