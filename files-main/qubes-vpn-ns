@@ -18,7 +18,7 @@ rm -f $nspath
 hostname=$(hostname)
 
 do_notify() {
-    if [ ! -e /etc/fedora-release ]; then
+    if [ ! -e /etc/fedora-release-NONE ]; then
         echo \'"notify-send \"$hostname: $1\"" --icon=$2\' | xargs su - user -c
     fi
 }

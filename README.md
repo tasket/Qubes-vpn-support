@@ -91,22 +91,10 @@ Technical notes
 
 ### Operating system support
 
-Qubes-vpn-support is tested to run on Debian 9 and 10 template-based VMs under Qubes OS 4.0.1. It is further tested to operate in tandem with [Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor.
+Qubes-vpn-support is tested to run on Fedora 30, Debian 9 and 10 template-based VMs
+under Qubes OS 4.0.1. It is further tested to operate in tandem with
+[Whonix](https://www.whonix.org) gateway VMs to tunnel Tor traffic and/or tunnel over Tor.
 
-Note that recent Fedora templates are tested as well, but have a [libnotify 
-bug](https://github.com/tasket/Qubes-vpn-support/issues/39#issuecomment-499204890)
-that causes programs (including this one) using popup notifications at 
-startup to hang. The current workaround disables VPN status popups on 
-Fedora only.
-
-Unfortunately, this is part of a trend for Fedora. Together with Fedora's unique 
-updates vulnerability due
-to its unsigned repo manifest (which is by conscious decision!),
-its status as ground-zero for systemd development including its worst excesses 
-and bugs, and the Qubes Project's own intention to migrate away from Fedora, I feel it 
-necessary to recommend [using
-Debian](https://www.qubes-os.org/doc/templates/debian/) templates; This is a 
-general recommendation, but emphasized here due the security focus of VPNs.
 
 ### OpenVPN
 * The OpenVPN version tested here is 2.4.x.
