@@ -18,7 +18,6 @@ Features
   * Qubes 4.0.1 support
   * Control over specific firewall restrictions
   * Better compatibility with MTU fragmentation detection
-  * Work around Fedora bug, issue #39
 
   ### New in v1.4.0
   * Anti-leak for IPv6
@@ -67,7 +66,8 @@ Regular usage is simple: Just link other VMs to the VPN VM and start them!
 
 ### Updating from prior versions
 
-Download the new Qubes-vpn-support release from github to your VM as before, then run the `sudo bash ./install` command to reinstall. The username/password entry can be skipped by pressing Ctrl-C at the prompt.
+Download the new Qubes-vpn-support release from github to your VM as before, then run the `sudo bash ./install` command to reinstall. In a proxyVM, username/password entry is performed last and can be skipped by pressing
+Ctrl-C at the prompt. The updated VMs should then be shut down or restarted.
 
 ### Locating and downloading VPN config files
 
@@ -77,12 +77,9 @@ If they offer an "App", do not download this as it
 won't work with Qubes-vpn-support.
 
 Config download pages for popular VPN providers:
-* PIA
-      https://www.privateinternetaccess.com/pages/client-support/#fifth
-* Mullvad (choose platform: Linux)
-      https://mullvad.net/en/download/config/
-* NordVPN
-      https://nordvpn.com/tutorials/linux/openvpn/
+* [PIA](https://www.privateinternetaccess.com/pages/client-support/#fifth)
+* [Mullvad](https://mullvad.net/en/download/config) (choose platform: Linux)
+* [NordVPN](https://nordvpn.com/tutorials/linux/openvpn)
 
 ---
 
@@ -154,18 +151,13 @@ The `proxy-firewall-restrict` script builds on the internal rules already set by
 
 On Qubes 4.x this script is linked to /rw/config/qubes-firewall.d/90_tunnel-restrict and you can add a custom script in the qubes-firewall.d folder to include your own rules.
 
-Normally, traffic originating from the VPN VM is controlled by group ID of the running process; only `qvpn` group is granted access. However, this restriction can be safely removed if necessary as it exists only to prevent accidental clearnet access from within the VPN VM and does not affect anti-leak rules for connected downstream VMs. Enable the Qubes service 'vpn-handler-egress' for the VPN VM to disable this group restriction.
+For userspace VPN protocols such as OpenVPN, traffic originating from the VPN VM is controlled by group ID of the
+running process; only `qvpn` group is granted access. However, this restriction can be safely removed if necessary as it exists only to prevent accidental clearnet access from within the VPN VM and does not affect anti-leak rules for connected downstream VMs. Enable the Qubes service 'vpn-handler-egress' for the VPN VM to disable this group restriction.
 
 ICMP packets are allowed for local traffic by default. If you think blocking ICMP is necessary you can enable
 the Qubes service 'vpn-handler-no-icmp'. Note this does not affect downstream VM (forwarded) ICMP traffic; blocking this
 can be done with the `qvm-firewall` tool.
 
-### About qubes-vpn-ns
-This handler script is tested to work with OpenVPN v2.4, but should be easily adaptable to other VPN clients with one or two variable-handling changes.
-
-DNS addresses are automatically acquired from DHCP without altering the local resolv.conf settings, so the VPN's DNS is normally only available to attached downstream VMs. This is intended as a privacy measure to prevent any inadvertant access by local (VPN VM) programs over the VPN tunnel.
-
-A change was made in 1.4beta2 to ensure that misconfiguration or malware in an appVM does not address DNS requests to other DNS servers. Previously all DNS requests were (as they are now) either sent through the tunnel or blocked, but the dnat rules mirrored the Qubes default and the destination address of the DNS request was not always forced.
 
 ### Basic concepts
 
