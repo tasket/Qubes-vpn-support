@@ -106,15 +106,12 @@ wiki [for directions](https://github.com/tasket/Qubes-vpn-support/wiki/Wireguard
 that include specific installation steps for wireguard in Debian along with Qubes-vpn-support.
 
 ### Link Testing and Troubleshooting
-* A bug in the Fedora 30 template has made a workaround necessary which disables popup VPN status messages
-(issue #39).
 
-* Connections can be manually tested with a command like `sudo openvpn --cd  /rw/config/vpn --config vpn-client.conf --auth-user-pass userpassword.txt` _before_ the script 'install' step. This is a good idea because
+* Connections should be manually tested with a command like `sudo openvpn --cd  /rw/config/vpn --config vpn-client.conf --auth-user-pass userpassword.txt` _before_ the script 'install' step. This is a good idea because
 it shows whether or not the basic link is working before Qubes-specific scripts
 become a factor.
 
-* After script installation, service commands such as `systemctl status qubes-vpn-handler` and `journalctl` may be used to monitor auto-started connections. Tools like `ping` and `traceroute`
-may also be used by running them with `sudo sg qvpn "command"` to permit them network access.
+* After script installation, service commands such as `systemctl status qubes-vpn-handler` and `journalctl` may be used to monitor and troubleshoot connections started by the qubes-vpn-handler service.
 
 * For manual DNS testing you can set DNS addresses in a CLI with:
   ```
@@ -132,6 +129,12 @@ may also be used by running them with `sudo sg qvpn "command"` to permit them ne
 issue after connecting. However, doing so from inside the VPN VM requires granting special 
 permission to the network with `sudo sg qvpn "command"`. (Also see *Firewall notes* for other
 ways to permit outbound traffic.)
+
+* Users have occasionally reported openvpn being unable to perform DNS lookups for the VPN provider's domain.
+This may be due to the way Qubes passes DNS requests up through various netvm layers on their way to
+the upstream network. Some workarounds that may improve DNS access are: 1. Populating /etc/resolv.conf with
+the DNS address of your physical ISP; 2. Installing the `resolvconf` package; 3. Enabling egress as described
+in the Firewall notes below.
 
 ### Tor/Whonix notes
 Qubes-vpn-support can handle either Tor-over-VPN (configuring sys-whonix `netvm` setting to use VPN VM) or the reverse, VPN-over-Tor (configuring VPN VM `netvm` setting to use sys-whonix). The latter requires the VPN client to be configured for TCP instead of UDP protocol, and a different port number such as 443 may be required by your VPN provider; For openvpn this can all be specified with the `remote` directive in the config file.
