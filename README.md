@@ -2,52 +2,42 @@
 Secure VPN VMs in [Qubes OS](https://www.qubes-os.org)
 
 
-Features
--
+### Features
 * Provides a **fail closed**, antileak VPN tunnel environment
 * Isolates the tunnel client within a dedicated Proxy VM
 * Prevents configuration errors
 * Separate firewall VM not required
 
 ### Easy setup
-  * Simple install script; No file editing or IP numbers necessary
-  * Lets you 'drop in' configuration files from VPN service provider
-  * Flexible installation into template or to individual ProxyVMs
-
-  ### New in this version, v1.4.1
-  * Qubes 4.0.1 support
-  * Control over specific firewall restrictions
-  * Better compatibility with MTU fragmentation detection
-
-  ### New in v1.4.0
-  * Anti-leak for IPv6
-  * All DNS requests forced to chosen VPN DNS
-  * Firewall integrity checked before connecting
-  * Quicker re-connection
-  * Supports passwordless cert authentication
+* Simple install script; No file editing or IP numbers necessary
+* Lets you 'drop in' configuration files from VPN service provider
+* Flexible installation into template or to individual ProxyVMs
 
 ---
 
 Quickstart setup guide
--
+---
 
 1. Create a ProxyVM using a template with VPN/tunnel software installed (i.e. OpenVPN). (In Qubes 4.0 a proxyVM is called an 'AppVM' with the `provides network` option enabled; this document will use the more descriptive 'ProxyVM' term...)
 
    Make a choice for the networking/netvm setting, such as `sys-net`.
 
-   Next, add `vpn-handler-openvpn` to the proxyVM's Settings / Services tab. Do not add other network services such as Network Manager.
+   Next, add `vpn-handler-openvpn` to the ProxyVM's Settings / Services tab by
+typing it into the top line and clicking the _plus_ icon. Do not add other network
+services such as Network Manager.
 
-2. Copy the VPN config files from your service provider to the ProxyVM's /rw/config/vpn folder, then copy or link the desired config to 'vpn-client.conf':
+2. Copy the VPN config files from your service provider to the ProxyVM's '/rw/config/vpn' folder, then copy or link the desired config to 'vpn-client.conf':
 
    ```
+   sudo mkdir -p /rw/config/vpn
    cd /rw/config/vpn
    sudo unzip ~/ovpn-configs-example.zip
    sudo cp US_East.ovpn vpn-client.conf
    ```
 
-   Note: This is a good point to test the connection. See the Link Testing section below for tips.
+   Note: This is a good point to test the connection. See the _Link Testing_ section below for tips.
 
-3. Decide whether you want a template or ProxyVM-only installation. Copy the Qubes-vpn-support folder to the template or proxy VM, then run install. You will be prompted for your VPN login credentials either in this step (proxyVM) or next step (template):
+3. Decide whether you want a template or ProxyVM-only installation. Copy the Qubes-vpn-support folder to the template or Proxy VM, then run install. You will be prompted for your VPN login credentials either in this step (ProxyVM) or next step (template):
 
    ```
    cd Qubes-vpn-support
@@ -60,13 +50,13 @@ Quickstart setup guide
    sudo /usr/lib/qubes/qubes-vpn-setup --config
    ```
 
-Restart the proxyVM. This will autostart the VPN client and you should see a popup notification 'LINK IS UP'!
+Restart the ProxyVM. This will autostart the VPN client and you should see a popup notification 'LINK IS UP'!
 
 Regular usage is simple: Just link other VMs to the VPN VM and start them!
 
 ### Updating from prior versions
 
-Download the new Qubes-vpn-support release from github to your VM as before, then run the `sudo bash ./install` command to reinstall. In a proxyVM, username/password entry is performed last and can be skipped by pressing
+Download the new Qubes-vpn-support release from github to your VM as before, then run the `sudo bash ./install` command to reinstall. In a ProxyVM, username/password entry is performed last and can be skipped by pressing
 Ctrl-C at the prompt. The updated VMs should then be shut down or restarted.
 
 ### Locating and downloading VPN config files
@@ -84,7 +74,7 @@ Config download pages for popular VPN providers:
 ---
 
 Technical notes
--
+---
 
 ### Operating system support
 
@@ -125,8 +115,8 @@ become a factor.
 
   ```
 
-* You should be able to use `ping` and `traceroute` commands from a downstream appVM without
-issue after connecting. However, doing so from inside the VPN VM requires granting special 
+* You should be able to use `ping` and `traceroute` commands from a downstream AppVM without
+issue after connecting. However, doing so from inside the VPN VM requires granting special
 permission to the network with `sudo sg qvpn "command"`. (Also see *Firewall notes* for other
 ways to permit outbound traffic.)
 
@@ -171,18 +161,35 @@ can be done with the `qvm-firewall` tool.
 * Configuration of the VPN client details (server address, protocols, etc) should be downloaded from the VPN provider's support page; the user can simply drop the config file into the /rw/config/vpn folder and rename it.
 
 ### Releases
-v1.4.1, June 2019
+v1.4.1, June 2019:
+  * Qubes 4.0.1 support
+  * Control over specific firewall restrictions
+  * Better compatibility with MTU fragmentation detection
 
-v1.4.0, Jan. 2019
+v1.4.0, Jan. 2019:
+  * Anti-leak for IPv6
+  * All DNS requests forced to chosen VPN DNS
+  * Firewall integrity checked before connecting
+  * Quicker re-connection
+  * Supports passwordless cert authentication
 
 v1.3 beta, July 2017
 
 v1.0.2, June 2016
 
-### See also
+### Donations
+* <a href="https://liberapay.com/tasket/donate"><img alt="Donate with Liberapay" src="images/lp_donate.svg" height=54></a>
+* <a href="https://www.patreon.com/tasket"><img alt="Donate with Patreon" src="images/become_a_patron_button.png" height=50></a>
+
+If you like Qubes-vpn-support or my other efforts, monetary contributions are welcome and can
+be made through [Liberapay](https://liberapay.com/tasket/donate)
+or [Patreon](https://www.patreon.com/tasket).
+
+### See also:
 [OpenVPN documentation](https://openvpn.net/index.php/open-source/documentation.html)
 
 [Whonix - Tor networking in Qubes](https://www.qubes-os.org/doc/whonix/install/)
 
 [Qubes VM hardening](https://github.com/tasket/Qubes-VM-hardening)
 
+[Wyng incremental backup](https://github.com/tasket/Qubes-VM-hardening)
