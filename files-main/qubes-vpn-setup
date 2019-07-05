@@ -179,7 +179,7 @@ case "$1" in
 ;;
 
 --version)
-    echo "1.4.1"
+    echo "1.4.2"
 ;;
 
 esac

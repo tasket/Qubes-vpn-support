@@ -161,6 +161,9 @@ can be done with the `qvm-firewall` tool.
 * Configuration of the VPN client details (server address, protocols, etc) should be downloaded from the VPN provider's support page; the user can simply drop the config file into the /rw/config/vpn folder and rename it.
 
 ### Releases
+v1.4.2, July 2019:
+  * Fix password character handling
+  
 v1.4.1, June 2019:
   * Qubes 4.0.1 support
   * Control over specific firewall restrictions
