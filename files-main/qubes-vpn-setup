@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 export PATH="$PATH:/usr/sbin:/sbin:/bin"
 [ `id -u` -eq 0 ] || exit 1
 
@@ -14,19 +14,14 @@ do_notify() {
 }
 
 
-do_userpass () {
-    bash /usr/lib/qubes/qubes-vpn-setup --userpass-bash
-}
-
-
 # Need bash for password prompt
-do_userpass_bash () {
+do_userpass() {
     echo
     echo "Enter VPN/tunnel login credentials."
     echo "Leave blank if not required..."
     echo
     read -p  "Username: " username
-    read -s -p "Password: " upassword
+    read -s -r -p "Password: " upassword
     echo
     echo
     if [[ -z $username && -z $upassword ]]; then
@@ -35,8 +30,8 @@ do_userpass_bash () {
       echo "Password login deactivated."
     else
       rm -f $qvpnpath/no-$upfile
-      echo "$username" >$tmppath.tmp
-      echo "$upassword" >>$tmppath.tmp
+      cat <<<"${username}" >$tmppath.tmp
+      cat <<<"${upassword}" >>$tmppath.tmp
       chmod 600 $tmppath.tmp
       mv $tmppath.tmp $tmppath
       cp -a $tmppath $qvpnpath/$upfile
@@ -47,7 +42,7 @@ do_userpass_bash () {
 }
 
 # needs source dir passed as first arg
-firewall_link () {
+firewall_link() {
     # firewall for Qubes 4
     mkdir -p /rw/config/qubes-firewall.d
     ln -s -f $1/proxy-firewall-restrict \
@@ -181,10 +176,6 @@ case "$1" in
 --xterm)
     touch /tmp/qvpn-askpass
     do_userpass
-;;
-
---userpass-bash)
-    do_userpass_bash
 ;;
 
 --version)
