@@ -103,16 +103,16 @@ case "$1" in
 ;;
 
 --post-start)
-    echo "START-ing network forwarding!"
     echo '1' > /proc/sys/net/ipv4/ip_forward
 # '0' appears to be default setting for ipv6
 #    echo '1' > /proc/sys/net/ipv6/conf/all/forwarding
+    echo "STARTED network forwarding!"
 ;;
 
 --post-stop)
-    echo "STOP-ing network forwarding!"
     echo '0' > /proc/sys/net/ipv4/ip_forward
     echo '0' > /proc/sys/net/ipv6/conf/all/forwarding
+    echo "STOPPED network forwarding!"
 ;;
 
 --install)
@@ -147,6 +147,29 @@ case "$1" in
     else
         echo "No appropriate VM type; Exiting."
         exit 1
+    fi
+;;
+
+--uninstall)
+    . /usr/lib/qubes/init/functions
+    if is_templatevm ; then
+        ( systemctl stop qubes-vpn-handler.service
+        systemctl disable qubes-vpn-handler.service
+        rm -rf /lib/systemd/system/qubes-vpn-handler.service
+        rm -rf /lib/systemd/system/qubes-vpn-handler.service.d
+        systemctl daemon-reload
+        cd /usr/lib/qubes
+        rm -f qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict
+        )
+        echo qubes-vpn-handler removed.
+    elif is_proxyvm ; then
+        ( cd /rw/config
+        rm -rf qubes-vpn-handler.service
+        rm -rf qubes-vpn-handler.service.d
+        rm -f qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict
+        mv -v rc.local rc.local-qvpn-disabled
+        )
+        echo qubes-vpn-handler removed.
     fi
 ;;
 

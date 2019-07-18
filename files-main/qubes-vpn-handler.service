@@ -17,7 +17,7 @@ Group=qvpn
 Restart=always
 RestartSec=10
 TimeoutStopSec=2
-Environment="filter_opts=up |down |script-security|keepalive|persist-tun|resolv-retry|auth-user-pass"
+Environment="filter_opts=user |group |up |down |ping |script-security|keepalive|persist-tun|resolv-retry|auth-user-pass|ping-restart|ping-exit|connect-retry|connect-retry-max"
 Environment="client_cmd=/usr/sbin/openvpn"
 Environment="client_opt1=--cd /rw/config/vpn/ --config /tmp/vpn-client.conf --verb 3"
 Environment="client_opt2=--mlock --ping 10 --ping-restart 42 --connect-retry 5 30"
