@@ -2,6 +2,12 @@
 
 # Install group and scripts
 groupadd -rf qvpn
+
+if systemctl is-enabled qubes-vpn-handler.service; then
+    su - user -c 'notify-send --icon=dialog-warning "Using vpn-handler from template!"'
+    exit 0
+fi
+
 cp -a /rw/config/qubes-vpn-handler.* /lib/systemd/system
 sync
 ln -s -f /rw/config/qubes-vpn-ns /usr/lib/qubes/qubes-vpn-ns
