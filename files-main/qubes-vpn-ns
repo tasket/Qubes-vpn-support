@@ -9,7 +9,7 @@
 ## Use 'vpn_dns' environment var as override/alternative.
 ## In openvpn config, format is: setenv vpn_dns 'X.X.X.X  Y.Y.Y.Y [...]'
 ##
-## Christopher Laprise, 2018-2019  -  https://github.com/tasket
+## Christopher Laprise, 2018-2020  -  https://github.com/tasket
 
 set -e
 export PATH="$PATH:/usr/sbin:/sbin:/bin"
@@ -19,7 +19,7 @@ hostname=$(hostname)
 
 do_notify() {
     if [ ! -e /etc/fedora-release-NONE ]; then
-        echo \'"notify-send \"$hostname: $1\"" --icon=$2\' | xargs su - user -c
+        echo \'"sleep 2; notify-send \"$hostname: $1\"" --icon=$2\' | xargs su - user -c &
     fi
 }
 

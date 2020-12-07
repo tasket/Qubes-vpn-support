@@ -68,7 +68,7 @@ won't work with Qubes-vpn-support.
 
 Config download pages for popular VPN providers:
 * [PIA](https://www.privateinternetaccess.com/pages/client-support/#fifth)
-* [Mullvad](https://mullvad.net/en/download/config) (choose platform: Linux)
+* [Mullvad](https://mullvad.net/en/account/#/openvpn-config/) (choose platform: Linux)
 * [NordVPN](https://nordvpn.com/tutorials/linux/openvpn)
 
 ---
@@ -161,7 +161,12 @@ can be done with the `qvm-firewall` tool.
 * Configuration of the VPN client details (server address, protocols, etc) should be downloaded from the VPN provider's support page; the user can simply drop the config file into the /rw/config/vpn folder and rename it.
 
 ### Releases
-v1.4.2, July 2019:
+
+v1.4.4, Dec. 2020:
+  * Workaround for notification jam at start
+
+v1.4.3, July 2019:
+  * Misc compatibility fixes
   * Fix password character handling
   
 v1.4.1, June 2019:
