@@ -46,6 +46,13 @@ up)
         . /var/run/qubes/qubes-ns
         q_addr=""
         for DNS in $vpn_dns; do
+            if [[ $DNS == *":"* ]]
+            then
+                    ip6tables -t nat -I PR-QBS -i vif+ -p tcp --dport 53 -j DNAT --to "$DNS"
+                    ip6tables -t nat -I PR-QBS -i vif+ -p udp --dport 53 -j DNAT --to "$DNS"
+                    q_addr="-d $NS1"
+                    break
+            fi
             iptables -t nat -I PR-QBS $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
             iptables -t nat -I PR-QBS $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
             q_addr="-d $NS1"
