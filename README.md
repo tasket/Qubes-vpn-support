@@ -67,7 +67,6 @@ If they offer an "App", do not download this as it
 won't work with Qubes-vpn-support.
 
 Config download pages for popular VPN providers:
-* [PIA](https://www.privateinternetaccess.com/pages/client-support/#fifth)
 * [Mullvad](https://mullvad.net/en/account/#/openvpn-config/) (choose platform: Linux)
 * [NordVPN](https://nordvpn.com/tutorials/linux/openvpn)
 
