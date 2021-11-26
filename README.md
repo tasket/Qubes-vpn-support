@@ -199,4 +199,4 @@ or [Patreon](https://www.patreon.com/tasket).
 
 [Qubes VM hardening](https://github.com/tasket/Qubes-VM-hardening)
 
-[Wyng incremental backup](https://github.com/tasket/Qubes-VM-hardening)
+[Wyng incremental backup](https://github.com/tasket/wyng-backup)
