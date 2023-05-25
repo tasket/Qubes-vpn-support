@@ -53,10 +53,53 @@ firewall_link() {
 case "$1" in
 --check-firewall)
     for i in 1 2 3; do
-        if iptables -C FORWARD -o eth0 -j DROP \
-        && iptables -C FORWARD -i eth0 -j DROP  \
-        && ip6tables -C FORWARD -o eth0 -j DROP  \
-        && ip6tables -C FORWARD -i eth0 -j DROP ; then
+        if (nft -j -s list chain ip qubes forward && nft -j -s list chain ip qubes forward) | python3 -c "
+import sys, json;
+def main():
+  rule_out_ipv4_exists = False
+  rule_in_ipv4_exists = False
+  rule_out_ipv6_exists = False
+  rule_in_ipv6_exists = False
+  nft_rules = sys.stdin.readlines()
+  nft_rules_ip = json.loads(nft_rules[0])['nftables']
+  nft_rules_ip6 = json.loads(nft_rules[1])['nftables']
+  for nft_rule in nft_rules_ip:
+    for nft_rule_item in nft_rule.items():
+      rule_expr0 = False
+      rule_expr1 = False
+      if 'expr' in nft_rule_item[1]:
+        for expr_item in nft_rule_item[1]['expr']:
+          if 'match' in expr_item and 'meta' in expr_item['match']['left'] and expr_item['match']['op'] == '==' and expr_item['match']['right'] == 1:
+            rule_expr0 = True
+          if 'drop' in expr_item and expr_item['drop'] == None:
+            rule_expr1 = True
+        if rule_expr0 and rule_expr1:
+          if nft_rule_item[1]['expr'][0]['match']['left']['meta']['key'] == 'oifgroup':
+            rule_out_ipv4_exists = True
+          elif nft_rule_item[1]['expr'][0]['match']['left']['meta']['key'] == 'iifgroup':
+            rule_in_ipv4_exists = True
+  for nft_rule in nft_rules_ip6:
+    for nft_rule_item in nft_rule.items():
+      rule_expr0 = False
+      rule_expr1 = False
+      if 'expr' in nft_rule_item[1]:
+        for expr_item in nft_rule_item[1]['expr']:
+          if 'match' in expr_item and 'meta' in expr_item['match']['left'] and expr_item['match']['op'] == '==' and expr_item['match']['right'] == 1:
+            rule_expr0 = True
+          if 'drop' in expr_item and expr_item['drop'] == None:
+            rule_expr1 = True
+        if rule_expr0 and rule_expr1:
+          if nft_rule_item[1]['expr'][0]['match']['left']['meta']['key'] == 'oifgroup':
+            rule_out_ipv6_exists = True
+          elif nft_rule_item[1]['expr'][0]['match']['left']['meta']['key'] == 'iifgroup':
+            rule_in_ipv6_exists = True
+  if rule_out_ipv4_exists and rule_in_ipv4_exists and rule_out_ipv6_exists and rule_in_ipv6_exists:
+    sys.exit(0)
+  else:
+    sys.exit(1)
+if __name__ == '__main__':
+  main()
+        "; then
             exit 0
         elif [ $i = 3 ]; then
             echo "Error: Firewall rule(s) not enabled!"
