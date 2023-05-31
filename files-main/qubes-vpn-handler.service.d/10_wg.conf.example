@@ -26,9 +26,6 @@ ExecStartPre=/bin/sed -i "/~~ function override insertion point/a unset_dns() { 
 
 # Workaround: Allow wg access to net
 ExecStartPre=/sbin/nft chain ip qubes output '{ policy accept; }'
-ExecStartPost=/sbin/nft insert rule ip qubes forward iifgroup 2 oif "vpn-client" accept
-ExecStartPost=/sbin/nft insert rule ip qubes forward iif "vpn-client" oifgroup 2 accept
-ExecStartPost=/sbin/nft insert rule ip6 qubes forward iifgroup 2 oif "vpn-client" accept
-ExecStartPost=/sbin/nft insert rule ip6 qubes forward iif "vpn-client" oifgroup 2 accept
+ExecStartPost=/sbin/ip link set dev "vpn-client" group 9
 
 ExecStop=/tmp/wg-quick down /tmp/vpn-client.conf

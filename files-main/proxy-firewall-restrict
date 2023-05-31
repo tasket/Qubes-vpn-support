@@ -15,24 +15,25 @@ groupadd -rf qvpn && sync
 
 # Stop all leaks between downstream (vif+) and upstream (Internet eth0):
 nft chain ip qubes forward '{ policy drop; }'
-nft insert rule ip qubes forward oifgroup 1 drop
-nft insert rule ip qubes forward iifgroup 1 drop
+nft insert rule ip qubes custom-forward oifgroup 1 drop
+nft insert rule ip qubes custom-forward iifgroup 1 drop
 
 nft chain ip6 qubes forward '{ policy drop; }'
-nft insert rule ip6 qubes forward oifgroup 1 drop
-nft insert rule ip6 qubes forward iifgroup 1 drop
+nft insert rule ip6 qubes custom-forward oifgroup 1 drop
+nft insert rule ip6 qubes custom-forward iifgroup 1 drop
 
 # Block INPUT from tunnel(s):
 nft chain ip qubes input '{ policy drop; }'
 nft chain ip6 qubes input '{ policy drop; }'
 
+# Create output chain since it's not created by Qubes by default
 nft add chain ip qubes output '{ type filter hook output priority 0; policy drop; }'
 nft add chain ip6 qubes output '{ type filter hook output priority 0; policy drop; }'
 
 # Disable icmp packets
 if [ -e /var/run/qubes-service/vpn-handler-no-icmp ]; then
-  nft insert rule ip qubes input meta l4proto icmp drop
-  nft insert rule ip6 qubes input meta l4proto icmp drop
+  nft insert rule ip qubes custom-input meta l4proto icmp drop
+  nft insert rule ip6 qubes custom-input meta l4proto icmp drop
 
   nft insert rule ip qubes output oifgroup 1 meta l4proto icmp drop
   nft insert rule ip6 qubes output oifgroup 1 meta l4proto icmp drop
@@ -56,3 +57,8 @@ nft insert rule ip qubes output oifgroup 1 skgid qvpn accept
 nft insert rule ip6 qubes output oif "lo" accept
 nft insert rule ip6 qubes output oifgroup 1 skgid qvpn accept
 
+# Accept forward traffic between dowstream (vif+, group 2) and VPN interface (group 9)
+nft insert rule ip qubes custom-forward iifgroup 2 oifgroup 9 accept
+nft insert rule ip qubes custom-forward iifgroup 9 oifgroup 2 accept
+nft insert rule ip6 qubes custom-forward iifgroup 2 oifgroup 9 accept
+nft insert rule ip6 qubes custom-forward iifgroup 9 oifgroup 2 accept

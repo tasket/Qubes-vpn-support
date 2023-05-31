@@ -53,7 +53,7 @@ firewall_link() {
 case "$1" in
 --check-firewall)
     for i in 1 2 3; do
-        if (nft -j -s list chain ip qubes forward && nft -j -s list chain ip qubes forward) | python3 -c "
+        if (nft -j -s list chain ip qubes custom-forward && nft -j -s list chain ip qubes custom-forward) | python3 -c "
 import sys, json;
 def main():
   rule_out_ipv4_exists = False
@@ -162,7 +162,8 @@ if __name__ == '__main__':
 
     if [ ! -d vpn ]; then exit 1; fi
     chown -R root:root *
-    chmod +x rc.local qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict
+    chmod +x rc.local qubes-vpn-ns qubes-vpn-openvpn-script \
+      qubes-vpn-setup proxy-firewall-restrict
 
     if [ -e /var/run/qubes/this-is-templatevm ]; then
         echo "Install into templateVM..."
@@ -170,8 +171,8 @@ if __name__ == '__main__':
         cp -a qubes-vpn-handler.service* /lib/systemd/system
         sync; sleep 2s; systemctl daemon-reload
         systemctl enable qubes-vpn-handler.service
-        cp -a qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict \
-    -t /usr/lib/qubes
+        cp -a qubes-vpn-ns qubes-vpn-openvpn-script qubes-vpn-setup \
+          proxy-firewall-restrict -t /usr/lib/qubes
         echo "Almost done..."
         echo "Next, shutdown this template then start proxyVM and run:"
         echo "sudo /usr/lib/qubes/qubes-vpn-setup --config"
@@ -179,10 +180,12 @@ if __name__ == '__main__':
     elif [ -e /var/run/qubes/this-is-proxyvm ]; then
         echo -n "Isolated install for proxyVM..."
         cp -a vpn rc.local qubes-vpn-handler.* qubes-vpn-setup \
-          qubes-vpn-ns proxy-firewall-restrict -t /rw/config
+          qubes-vpn-ns qubes-vpn-openvpn-script proxy-firewall-restrict \
+          -t /rw/config
         firewall_link /rw/config
         ln -s -f /rw/config/qubes-vpn-setup /usr/lib/qubes/qubes-vpn-setup
         ln -s -f /rw/config/qubes-vpn-ns /usr/lib/qubes/qubes-vpn-ns
+        ln -s -f /rw/config/qubes-vpn-ns /usr/lib/qubes/qubes-vpn-openvpn-script
         echo "copy complete."
         do_userpass
         echo "Done!"
@@ -202,14 +205,16 @@ if __name__ == '__main__':
         rm -rf /lib/systemd/system/qubes-vpn-handler.service.d
         systemctl daemon-reload
         cd /usr/lib/qubes
-        rm -f qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict
+        rm -f qubes-vpn-ns qubes-vpn-openvpn-script qubes-vpn-setup \
+          proxy-firewall-restrict
         )
         echo qubes-vpn-handler removed.
     elif is_proxyvm ; then
         ( cd /rw/config
         rm -rf qubes-vpn-handler.service
         rm -rf qubes-vpn-handler.service.d
-        rm -f qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict
+        rm -f qubes-vpn-ns qubes-vpn-openvpn-script qubes-vpn-setup \
+          proxy-firewall-restrict
         mv -v rc.local rc.local-qvpn-disabled
         )
         echo qubes-vpn-handler removed.
