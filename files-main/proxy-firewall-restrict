@@ -33,7 +33,7 @@ nft chain ip qubes input '{ policy drop; }'
 nft chain ip6 qubes input '{ policy drop; }'
 
 # Create output chain since it's not created by Qubes by default
-nft add chain ip qubes output '{ type filter hook output priority 0; policy acceot; }'
+nft add chain ip qubes output '{ type filter hook output priority 0; policy accept; }'
 nft add chain ip6 qubes output '{ type filter hook output priority 0; policy accept; }'
 
 # Disable icmp packets
