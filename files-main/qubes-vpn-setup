@@ -185,7 +185,7 @@ if __name__ == '__main__':
         firewall_link /rw/config
         ln -s -f /rw/config/qubes-vpn-setup /usr/lib/qubes/qubes-vpn-setup
         ln -s -f /rw/config/qubes-vpn-ns /usr/lib/qubes/qubes-vpn-ns
-        ln -s -f /rw/config/qubes-vpn-ns /usr/lib/qubes/qubes-vpn-openvpn-script
+        ln -s -f /rw/config/qubes-vpn-openvpn-script /usr/lib/qubes/qubes-vpn-openvpn-script
         echo "copy complete."
         do_userpass
         echo "Done!"
