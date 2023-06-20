@@ -4,6 +4,6 @@
 
 case $script_type in
     up)
-        ip link set dev "$dev" group 9
+        /usr/sbin/ip link set dev "$dev" group 9
         ;;
 esac
