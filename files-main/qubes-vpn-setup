@@ -104,14 +104,17 @@ case "$1" in
 
 --post-start)
     echo '1' > /proc/sys/net/ipv4/ip_forward
-# '0' appears to be default setting for ipv6
-#    echo '1' > /proc/sys/net/ipv6/conf/all/forwarding
+    if $(exec qubesdb-read /qubes-ip6 1>/dev/null 2>/dev/null); then
+        echo '1' > /proc/sys/net/ipv6/conf/all/forwarding
+    fi
     echo "STARTED network forwarding!"
 ;;
 
 --post-stop)
     echo '0' > /proc/sys/net/ipv4/ip_forward
-    echo '0' > /proc/sys/net/ipv6/conf/all/forwarding
+    if $(exec qubesdb-read /qubes-ip6 1>/dev/null 2>/dev/null); then
+        echo '0' > /proc/sys/net/ipv6/conf/all/forwarding
+    fi
     echo "STOPPED network forwarding!"
 ;;
 
