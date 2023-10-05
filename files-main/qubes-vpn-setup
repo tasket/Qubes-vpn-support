@@ -104,7 +104,7 @@ case "$1" in
 
 --post-start)
     echo '1' > /proc/sys/net/ipv4/ip_forward
-    if $(exec qubesdb-read /qubes-ip6 1>/dev/null 2>/dev/null); then
+    if $(exec qubesdb-read /qubes-ip6 &>/dev/null); then
         echo '1' > /proc/sys/net/ipv6/conf/all/forwarding
     fi
     echo "STARTED network forwarding!"
@@ -112,7 +112,7 @@ case "$1" in
 
 --post-stop)
     echo '0' > /proc/sys/net/ipv4/ip_forward
-    if $(exec qubesdb-read /qubes-ip6 1>/dev/null 2>/dev/null); then
+    if $(exec qubesdb-read /qubes-ip6 &>/dev/null); then
         echo '0' > /proc/sys/net/ipv6/conf/all/forwarding
     fi
     echo "STOPPED network forwarding!"
