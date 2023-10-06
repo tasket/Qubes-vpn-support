@@ -21,7 +21,7 @@ Environment="userpassword_opt="
 
 # Override wg-quick DNS functions:
 ExecStartPre=/bin/cp -a /usr/bin/wg-quick /tmp
-ExecStartPre=/bin/sed -i "/~~ function override insertion point/a set_dns() { export vpn_dns=\$DNS; /usr/lib/qubes/qubes-vpn-ns up; HAVE_SET_DNS=1; }" /tmp/wg-quick
+ExecStartPre=/bin/sed -i "/~~ function override insertion point/a set_dns() { export vpn_dns=\$(echo \"\$\{DNS[*]\}\" | sed -e \"s|[[:space:]]\+||g\" -e \"s|,| |g\"); /usr/lib/qubes/qubes-vpn-ns up; HAVE_SET_DNS=1; }" /tmp/wg-quick
 ExecStartPre=/bin/sed -i "/~~ function override insertion point/a unset_dns() { /usr/lib/qubes/qubes-vpn-ns down; }" /tmp/wg-quick
 
 # Workaround: Allow wg access to net

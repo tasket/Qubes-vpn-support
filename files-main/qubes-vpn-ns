@@ -43,12 +43,55 @@ up)
         echo "$vpn_dns " >$nspath
         echo "Using DNS servers $vpn_dns"
         nft flush chain ip qubes dnat-dns
+        # ip6 qubes dnat-dns chain is missing upstream so fix it here for now
+        nft add chain ip6 qubes dnat-dns '{ type nat hook prerouting priority dstnat; policy accept; }'
+        nft flush chain ip6 qubes dnat-dns
         . /var/run/qubes/qubes-ns
-        q_addr=""
-        for DNS in $vpn_dns; do
-            nft add rule ip qubes dnat-dns iifgroup 2 $q_addr tcp dport 53 dnat to $DNS
-            nft add rule ip qubes dnat-dns iifgroup 2 $q_addr udp dport 53 dnat to $DNS
-            q_addr="ip daddr $NS1"
+        for NS in $NS1 $NS2; do
+            if [[ $NS =~ .*\..* ]] ; then
+                for DNS in $vpn_dns; do
+                    if [[ $DNS =~ .*\..* ]] ; then
+                        nft add rule ip qubes dnat-dns iifgroup 2 ip daddr $NS tcp dport 53 dnat to $DNS
+                        nft add rule ip qubes dnat-dns iifgroup 2 ip daddr $NS udp dport 53 dnat to $DNS
+                        break
+                    fi
+                done
+            else
+                for DNS in $vpn_dns; do
+                    if [[ $DNS =~ .*:.* ]] ; then
+                        nft add rule ip6 qubes dnat-dns iifgroup 2 ip6 daddr $NS tcp dport 53 dnat to $DNS
+                        nft add rule ip6 qubes dnat-dns iifgroup 2 ip6 daddr $NS udp dport 53 dnat to $DNS
+                        break
+                    fi
+                done
+            fi
+        done
+        # Add fallback rules if no DNS is present in $NS1 and $NS2
+        # Also to redirect all DNS queries to VPN DNS to prevent DNS leaks
+        # This may cause troubles if user want to use some specific
+        # DNS server but it'll redirect queries to VPN DNS instead
+        dns_ipv4_found=0
+        dns_ipv6_found=0
+        for NS in $NS1 $NS2; do
+            if [[ $dns_ipv4_found == 0 ]] && [[ $NS =~ .*\..* ]] ; then
+                for DNS in $vpn_dns; do
+                    if [[ $DNS =~ .*\..* ]] ; then
+                        nft add rule ip qubes dnat-dns iifgroup 2 tcp dport 53 dnat to $DNS
+                        nft add rule ip qubes dnat-dns iifgroup 2 udp dport 53 dnat to $DNS
+                        dns_ipv4_found=1
+                        break
+                    fi
+                done
+            elif [[ $dns_ipv6_found == 0 ]] && [[ $NS =~ .*:.* ]] ; then
+                for DNS in $vpn_dns; do
+                    if [[ $DNS =~ .*:.* ]] ; then
+                        nft add rule ip6 qubes dnat-dns iifgroup 2 tcp dport 53 dnat to $DNS
+                        nft add rule ip6 qubes dnat-dns iifgroup 2 udp dport 53 dnat to $DNS
+                        dns_ipv6_found=1
+                        break
+                    fi
+                done
+            fi
         done
         do_notify "LINK IS UP." "network-idle"
     else
@@ -72,6 +115,7 @@ test-up)
 ;;
 down)
     nft flush chain ip qubes dnat-dns
+    nft flush chain ip6 qubes dnat-dns
     do_notify "LINK IS DOWN !" "dialog-error"
 
 ;;
