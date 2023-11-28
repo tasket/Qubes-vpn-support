@@ -14,31 +14,38 @@ groupadd -rf qvpn && sync
 # Set firewall restriction policy
 
 # Stop all leaks between downstream (vif+) and upstream (Internet eth0):
-iptables -P FORWARD DROP
-iptables -I FORWARD -o eth0 -j DROP
-iptables -I FORWARD -i eth0 -j DROP
+nft chain ip qubes forward '{ policy drop; }'
+nft insert rule ip qubes custom-forward oifgroup 1 drop
+nft insert rule ip qubes custom-forward iifgroup 1 drop
 
-ip6tables -P FORWARD DROP
-ip6tables -I FORWARD -o eth0 -j DROP
-ip6tables -I FORWARD -i eth0 -j DROP
+nft chain ip6 qubes forward '{ policy drop; }'
+nft insert rule ip6 qubes custom-forward oifgroup 1 drop
+nft insert rule ip6 qubes custom-forward iifgroup 1 drop
+
+# Accept forward traffic between dowstream (vif+, group 2) and VPN interface (group 9)
+nft insert rule ip qubes custom-forward iifgroup 2 oifgroup 9 accept
+nft insert rule ip qubes custom-forward iifgroup 9 oifgroup 2 accept
+nft insert rule ip6 qubes custom-forward iifgroup 2 oifgroup 9 accept
+nft insert rule ip6 qubes custom-forward iifgroup 9 oifgroup 2 accept
 
 # Block INPUT from tunnel(s):
-iptables  -P INPUT DROP
-ip6tables -P INPUT DROP
+nft chain ip qubes input '{ policy drop; }'
+nft chain ip6 qubes input '{ policy drop; }'
 
-# Allow established v6 traffic (v4 rule already present):
-#iptables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
-ip6tables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
+# Create output chain since it's not created by Qubes by default
+nft add chain ip qubes output '{ type filter hook output priority 0; policy accept; }'
+nft add chain ip6 qubes output '{ type filter hook output priority 0; policy accept; }'
 
 # Disable icmp packets
 if [ -e /var/run/qubes-service/vpn-handler-no-icmp ]; then
-  iptables  -D INPUT -p icmp -j ACCEPT  || true
-  ip6tables -D INPUT -p icmp -j ACCEPT  || true
-  iptables  -I OUTPUT -p icmp -o eth0 -j DROP
-  ip6tables -I OUTPUT -p icmp -o eth0 -j DROP
+  nft insert rule ip qubes custom-input meta l4proto icmp drop
+  nft insert rule ip6 qubes custom-input meta l4proto icmp drop
+
+  nft insert rule ip qubes output oifgroup 1 meta l4proto icmp drop
+  nft insert rule ip6 qubes output oifgroup 1 meta l4proto icmp drop
 else
-  iptables  -I OUTPUT -p icmp -m owner --gid-owner qvpn -j ACCEPT
-  ip6tables -I OUTPUT -p icmp -m owner --gid-owner qvpn -j ACCEPT
+  nft insert rule ip qubes output meta l4proto icmp skgid qvpn accept
+  nft insert rule ip6 qubes output meta l4proto icmp skgid qvpn accept
 fi
 
 ###-------------------------------------------------------------------###
@@ -50,11 +57,10 @@ fi
 # Extra restriction prevents accidental communications from within VPN VM to net;
 # The gid-owner rule requires net programs be run with group ID 'qvpn'
 # to allow outbound traffic.
-iptables -P OUTPUT DROP
-iptables -I OUTPUT -o lo -j ACCEPT
-iptables -I OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -j ACCEPT
+nft chain ip qubes output '{ policy drop; }'
+nft insert rule ip qubes output oif "lo" accept
+nft insert rule ip qubes output oifgroup 1 skgid qvpn accept
 
-ip6tables -P OUTPUT DROP
-ip6tables -I OUTPUT -o lo -j ACCEPT
-ip6tables -I OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -j ACCEPT
-
+nft chain ip6 qubes output '{ policy drop; }'
+nft insert rule ip6 qubes output oif "lo" accept
+nft insert rule ip6 qubes output oifgroup 1 skgid qvpn accept

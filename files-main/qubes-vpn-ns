@@ -38,18 +38,61 @@ up|test-up)
 
 ;;&
 up)
+    # Flush redirects to Qubes OS virtual DNS servers
+    # from qubes connected to this qube
+    nft flush chain ip qubes dnat-dns
+    # ip6 qubes dnat-dns chain is missing upstream so fix it here for now
+    nft add chain ip6 qubes dnat-dns '{ type nat hook prerouting priority dstnat; policy accept; }'
+    nft flush chain ip6 qubes dnat-dns
     if [[ -n "$vpn_dns" ]] ; then
         # Set DNS address translation in firewall:
         echo "$vpn_dns " >$nspath
         echo "Using DNS servers $vpn_dns"
-        iptables -t nat -F PR-QBS
         . /var/run/qubes/qubes-ns
-        q_addr=""
+        
+        vpn_dns_ip4=()
+        vpn_dns_ip6=()
         for DNS in $vpn_dns; do
-            iptables -t nat -I PR-QBS $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
-            iptables -t nat -I PR-QBS $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
-            q_addr="-d $NS1"
+            if [[ $DNS =~ .*\..* ]] ; then
+                vpn_dns_ip4+=($DNS)
+            elif [[ $DNS =~ .*:.* ]] ; then
+                vpn_dns_ip6+=($DNS)
+            fi
         done
+
+        qubes_dns_ip4=()
+        qubes_dns_ip6=()
+        for NS in $NS1 $NS2; do
+            if [[ $NS =~ .*\..* ]] ; then
+                qubes_dns_ip4+=($NS)
+            elif [[ $NS =~ .*:.* ]] ; then
+                qubes_dns_ip6+=($NS)
+            fi
+        done
+
+        if [[ ${#vpn_dns_ip4[@]} != 0 ]] && [[ ${#qubes_dns_ip4[@]} != 0 ]]; then
+            for i in $(seq 0 $((${#qubes_dns_ip4[@]} - 1))); do
+                if [[ $i < ${#vpn_dns_ip4[@]} ]] ; then
+                    nft add rule ip qubes dnat-dns iifgroup 2 ip daddr ${qubes_dns_ip4[$i]} tcp dport 53 dnat to ${vpn_dns_ip4[$i]}
+                    nft add rule ip qubes dnat-dns iifgroup 2 ip daddr ${qubes_dns_ip4[$i]} udp dport 53 dnat to ${vpn_dns_ip4[$i]}
+                else
+                    nft add rule ip qubes dnat-dns iifgroup 2 ip daddr ${qubes_dns_ip4[$i]} tcp dport 53 dnat to ${vpn_dns_ip4[0]}
+                    nft add rule ip qubes dnat-dns iifgroup 2 ip daddr ${qubes_dns_ip4[$i]} udp dport 53 dnat to ${vpn_dns_ip4[0]}
+                fi
+            done
+        fi
+        
+        if [[ ${#vpn_dns_ip6[@]} != 0 ]] && [[ ${#qubes_dns_ip6[@]} != 0 ]]; then
+            for i in $(seq 0 $((${#qubes_dns_ip6[@]} - 1))); do
+                if [[ $i < ${#vpn_dns_ip6[@]} ]] ; then
+                    nft add rule ip6 qubes dnat-dns iifgroup 2 ip6 daddr ${qubes_dns_ip6[$i]} tcp dport 53 dnat to ${qubes_dns_ip6[$i]}
+                    nft add rule ip6 qubes dnat-dns iifgroup 2 ip6 daddr ${qubes_dns_ip6[$i]} udp dport 53 dnat to ${qubes_dns_ip6[$i]}
+                else
+                    nft add rule ip6 qubes dnat-dns iifgroup 2 ip6 daddr ${qubes_dns_ip6[$i]} tcp dport 53 dnat to ${qubes_dns_ip6[0]}
+                    nft add rule ip6 qubes dnat-dns iifgroup 2 ip6 daddr ${qubes_dns_ip6[$i]} udp dport 53 dnat to ${qubes_dns_ip6[0]}
+                fi
+            done
+        fi
         do_notify "LINK IS UP." "network-idle"
     else
         do_notify "LINK UP, NO DNS!" "dialog-error"
@@ -71,7 +114,8 @@ test-up)
 
 ;;
 down)
-    iptables -t nat -F PR-QBS
+    nft flush chain ip qubes dnat-dns
+    nft flush chain ip6 qubes dnat-dns
     do_notify "LINK IS DOWN !" "dialog-error"
 
 ;;

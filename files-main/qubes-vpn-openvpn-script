@@ -1,0 +1,9 @@
+#!/bin/bash
+
+/usr/lib/qubes/qubes-vpn-ns $script_type
+
+case $script_type in
+    up)
+        /usr/sbin/ip link set dev "$dev" group 9
+        ;;
+esac

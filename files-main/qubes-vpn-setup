@@ -53,10 +53,53 @@ firewall_link() {
 case "$1" in
 --check-firewall)
     for i in 1 2 3; do
-        if iptables -C FORWARD -o eth0 -j DROP \
-        && iptables -C FORWARD -i eth0 -j DROP  \
-        && ip6tables -C FORWARD -o eth0 -j DROP  \
-        && ip6tables -C FORWARD -i eth0 -j DROP ; then
+        if (nft -j -s list chain ip qubes custom-forward && nft -j -s list chain ip qubes custom-forward) | python3 -c "
+import sys, json;
+def main():
+  rule_out_ipv4_exists = False
+  rule_in_ipv4_exists = False
+  rule_out_ipv6_exists = False
+  rule_in_ipv6_exists = False
+  nft_rules = sys.stdin.readlines()
+  nft_rules_ip = json.loads(nft_rules[0])['nftables']
+  nft_rules_ip6 = json.loads(nft_rules[1])['nftables']
+  for nft_rule in nft_rules_ip:
+    for nft_rule_item in nft_rule.items():
+      rule_expr0 = False
+      rule_expr1 = False
+      if 'expr' in nft_rule_item[1]:
+        for expr_item in nft_rule_item[1]['expr']:
+          if 'match' in expr_item and 'meta' in expr_item['match']['left'] and expr_item['match']['op'] == '==' and expr_item['match']['right'] == 1:
+            rule_expr0 = True
+          if 'drop' in expr_item and expr_item['drop'] == None:
+            rule_expr1 = True
+        if rule_expr0 and rule_expr1:
+          if nft_rule_item[1]['expr'][0]['match']['left']['meta']['key'] == 'oifgroup':
+            rule_out_ipv4_exists = True
+          elif nft_rule_item[1]['expr'][0]['match']['left']['meta']['key'] == 'iifgroup':
+            rule_in_ipv4_exists = True
+  for nft_rule in nft_rules_ip6:
+    for nft_rule_item in nft_rule.items():
+      rule_expr0 = False
+      rule_expr1 = False
+      if 'expr' in nft_rule_item[1]:
+        for expr_item in nft_rule_item[1]['expr']:
+          if 'match' in expr_item and 'meta' in expr_item['match']['left'] and expr_item['match']['op'] == '==' and expr_item['match']['right'] == 1:
+            rule_expr0 = True
+          if 'drop' in expr_item and expr_item['drop'] == None:
+            rule_expr1 = True
+        if rule_expr0 and rule_expr1:
+          if nft_rule_item[1]['expr'][0]['match']['left']['meta']['key'] == 'oifgroup':
+            rule_out_ipv6_exists = True
+          elif nft_rule_item[1]['expr'][0]['match']['left']['meta']['key'] == 'iifgroup':
+            rule_in_ipv6_exists = True
+  if rule_out_ipv4_exists and rule_in_ipv4_exists and rule_out_ipv6_exists and rule_in_ipv6_exists:
+    sys.exit(0)
+  else:
+    sys.exit(1)
+if __name__ == '__main__':
+  main()
+        "; then
             exit 0
         elif [ $i = 3 ]; then
             echo "Error: Firewall rule(s) not enabled!"
@@ -119,7 +162,8 @@ case "$1" in
 
     if [ ! -d vpn ]; then exit 1; fi
     chown -R root:root *
-    chmod +x rc.local qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict
+    chmod +x rc.local qubes-vpn-ns qubes-vpn-openvpn-script \
+      qubes-vpn-setup proxy-firewall-restrict
 
     if [ -e /var/run/qubes/this-is-templatevm ]; then
         echo "Install into templateVM..."
@@ -127,8 +171,8 @@ case "$1" in
         cp -a qubes-vpn-handler.service* /lib/systemd/system
         sync; sleep 2s; systemctl daemon-reload
         systemctl enable qubes-vpn-handler.service
-        cp -a qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict \
-    -t /usr/lib/qubes
+        cp -a qubes-vpn-ns qubes-vpn-openvpn-script qubes-vpn-setup \
+          proxy-firewall-restrict -t /usr/lib/qubes
         echo "Almost done..."
         echo "Next, shutdown this template then start proxyVM and run:"
         echo "sudo /usr/lib/qubes/qubes-vpn-setup --config"
@@ -136,10 +180,12 @@ case "$1" in
     elif [ -e /var/run/qubes/this-is-proxyvm ]; then
         echo -n "Isolated install for proxyVM..."
         cp -a vpn rc.local qubes-vpn-handler.* qubes-vpn-setup \
-          qubes-vpn-ns proxy-firewall-restrict -t /rw/config
+          qubes-vpn-ns qubes-vpn-openvpn-script proxy-firewall-restrict \
+          -t /rw/config
         firewall_link /rw/config
         ln -s -f /rw/config/qubes-vpn-setup /usr/lib/qubes/qubes-vpn-setup
         ln -s -f /rw/config/qubes-vpn-ns /usr/lib/qubes/qubes-vpn-ns
+        ln -s -f /rw/config/qubes-vpn-openvpn-script /usr/lib/qubes/qubes-vpn-openvpn-script
         echo "copy complete."
         do_userpass
         echo "Done!"
@@ -159,14 +205,16 @@ case "$1" in
         rm -rf /lib/systemd/system/qubes-vpn-handler.service.d
         systemctl daemon-reload
         cd /usr/lib/qubes
-        rm -f qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict
+        rm -f qubes-vpn-ns qubes-vpn-openvpn-script qubes-vpn-setup \
+          proxy-firewall-restrict
         )
         echo qubes-vpn-handler removed.
     elif is_proxyvm ; then
         ( cd /rw/config
         rm -rf qubes-vpn-handler.service
         rm -rf qubes-vpn-handler.service.d
-        rm -f qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict
+        rm -f qubes-vpn-ns qubes-vpn-openvpn-script qubes-vpn-setup \
+          proxy-firewall-restrict
         mv -v rc.local rc.local-qvpn-disabled
         )
         echo qubes-vpn-handler removed.
