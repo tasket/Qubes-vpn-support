@@ -33,14 +33,13 @@ nft 'add rule ip6 filter INPUT ct state established counter accept'
 # Disable icmp packets
 if [ -e /var/run/qubes-service/vpn-handler-no-icmp ]; then
   # 2 TODO
-  iptables  -D INPUT -p icmp -j ACCEPT  || true
+  iptables -D INPUT -p icmp -j ACCEPT  || true
   ip6tables -D INPUT -p icmp -j ACCEPT  || true
   nft 'insert rule ip filter OUTPUT oifname "eth0" ip protocol icmp counter drop'
   nft 'insert rule ip6 filter OUTPUT oifname "eth0" meta l4proto icmp counter drop'
 else
-  # 2 TODO                                         ↓ seems to be 995?
-  iptables  -I OUTPUT -p icmp -m owner --gid-owner qvpn -j ACCEPT
-  ip6tables -I OUTPUT -p icmp -m owner --gid-owner qvpn -j ACCEPT
+  nft 'insert rule ip filter OUTPUT ip protocol icmp skgid 995 counter accept' # 7.b
+  nft 'insert rule ip6 filter OUTPUT meta l4proto icmp skgid 995 counter accept' # 8.b
 fi
 
 ###-------------------------------------------------------------------###
@@ -54,10 +53,8 @@ fi
 # to allow outbound traffic.
 nft 'insert rule ip filter OUTPUT drop' # 9.b
 nft 'insert rule ip filter OUTPUT oifname "lo" counter accept'
-# 1 TODO                                               ↓ seems to be 995?
-iptables -I OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -j ACCEPT
+nft 'insert rule ip filter OUTPUT oifname "eth0" skgid 995 counter accept' # 10.b
 
 nft 'insert rule ip6 filter OUTPUT drop' # 11.b
 nft 'insert rule ip6 filter OUTPUT oifname "lo" counter accept'
-# 1 TODO                                               ↓ seems to be 995?
-ip6tables -I OUTPUT -p all -o eth0 -m owner --gid-owner qvpn -j ACCEPT
+nft 'insert rule ip6 filter OUTPUT oifname "eth0" skgid 995 counter accept' # 12.b
