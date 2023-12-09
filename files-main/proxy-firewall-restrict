@@ -14,20 +14,29 @@ groupadd -rf qvpn && sync
 # Set firewall restriction policy
 
 # Stop all leaks between downstream (vif+) and upstream (Internet eth0):
-# 1 TODO
-iptables -P FORWARD DROP
+# 3 OPTIONS
+nft add rule filter FORWARD drop
+nft 'insert rule ip filter FORWARD drop'
+nft 'insert rule ip filter FORWARD counter drop'
 nft 'insert rule ip filter FORWARD oifname "eth0" counter drop'
 nft 'insert rule ip filter FORWARD iifname "eth0" counter drop'
 
-# 1 TODO
-ip6tables -P FORWARD DROP
+# 3 OPTIONS
+nft add rule filter FORWARD drop
+nft 'insert rule ip6 filter FORWARD drop'
+nft 'insert rule ip6 filter FORWARD counter drop'
 nft 'insert rule ip6 filter FORWARD oifname "eth0" counter drop'
 nft 'insert rule ip6 filter FORWARD iifname "eth0" counter drop'
 
 # Block INPUT from tunnel(s):
-# 2 TODO
-iptables  -P INPUT DROP
-ip6tables -P INPUT DROP
+# 3 OPTIONS
+nft add rule filter INPUT drop
+nft 'insert rule ip filter INPUT drop'
+nft 'insert rule ip filter INPUT counter drop'
+# 3 OPTIONS
+nft add rule filter INPUT drop
+nft 'insert rule ip6 filter INPUT drop'
+nft 'insert rule ip6 filter INPUT counter drop'
 
 # Allow established v6 traffic (v4 rule already present):
 #nft 'add rule ip filter INPUT ct state established counter accept'
