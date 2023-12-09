@@ -14,6 +14,8 @@ groupadd -rf qvpn && sync
 # Set firewall restriction policy
 
 # Stop all leaks between downstream (vif+) and upstream (Internet eth0):
+# NOTE: 1.b and its derivatives are apparently terminal actions (i.e. this
+#       order may error by construction)
 nft 'insert rule ip filter FORWARD drop' # 1.b
 nft 'insert rule ip filter FORWARD oifname "eth0" counter drop'
 nft 'insert rule ip filter FORWARD iifname "eth0" counter drop'
