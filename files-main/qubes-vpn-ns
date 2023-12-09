@@ -42,12 +42,13 @@ up)
         # Set DNS address translation in firewall:
         echo "$vpn_dns " >$nspath
         echo "Using DNS servers $vpn_dns"
-        iptables -t nat -F PR-QBS
+	nft flush chain ip nat PR-QBS
         . /var/run/qubes/qubes-ns
         q_addr=""
         for DNS in $vpn_dns; do
-            iptables -t nat -I PR-QBS $q_addr -i vif+ -p tcp --dport 53 -j DNAT --to $DNS
-            iptables -t nat -I PR-QBS $q_addr -i vif+ -p udp --dport 53 -j DNAT --to $DNS
+	    # maybe missing $q_addr? seems to be `""` at this call
+	    nft 'insert rule ip nat PR-QBS iifname "vif*" tcp dport 53 counter dnat to ${DNS}'
+	    nft 'insert rule ip nat PR-QBS iifname "vif*" udp dport 53 counter dnat to ${DNS}'
             q_addr="-d $NS1"
         done
         do_notify "LINK IS UP." "network-idle"
@@ -71,7 +72,7 @@ test-up)
 
 ;;
 down)
-    iptables -t nat -F PR-QBS
+    nft flush chain ip nat PR-QBS
     do_notify "LINK IS DOWN !" "dialog-error"
 
 ;;

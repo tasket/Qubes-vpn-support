@@ -53,6 +53,7 @@ firewall_link() {
 case "$1" in
 --check-firewall)
     for i in 1 2 3; do
+	# 4 TODO
         if iptables -C FORWARD -o eth0 -j DROP \
         && iptables -C FORWARD -i eth0 -j DROP  \
         && ip6tables -C FORWARD -o eth0 -j DROP  \

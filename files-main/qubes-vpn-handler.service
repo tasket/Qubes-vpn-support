@@ -1,5 +1,6 @@
 ##########################################################
 ##  Qubes VPN Handler
+##  NOTOUCH?
 ##
 ##  See qubes-vpn-handler.service.d/00_example.conf
 ##  for example customization.
