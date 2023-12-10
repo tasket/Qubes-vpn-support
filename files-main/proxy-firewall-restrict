@@ -34,9 +34,8 @@ nft 'add rule ip6 filter INPUT ct state established counter accept'
 
 # Disable icmp packets
 if [ -e /var/run/qubes-service/vpn-handler-no-icmp ]; then
-  # 2 TODO
-  iptables -D INPUT -p icmp -j ACCEPT  || true
-  ip6tables -D INPUT -p icmp -j ACCEPT  || true
+  nft 'delete rule ip filter INPUT protocol icmp accept' || true # 5.b
+  nft 'delete rule ip6 filter INPUT protocol icmp accept' || true # 6.b
   nft 'insert rule ip filter OUTPUT oifname "eth0" ip protocol icmp counter drop'
   nft 'insert rule ip6 filter OUTPUT oifname "eth0" meta l4proto icmp counter drop'
 else
