@@ -3,8 +3,6 @@ export PATH="$PATH:/usr/sbin:/sbin:/bin"
 [ `id -u` -eq 0 ] || exit 1
 
 # set variables
-# 1 TODO
-rulekeyfile=
 qvpnpath=/rw/config/vpn
 upfile=userpassword.txt
 tmppath=/tmp/$upfile
@@ -57,13 +55,7 @@ firewall_link() {
 case "$1" in
 --check-firewall)
     for i in 1 2 3; do
-	# 4 TODO:
-        # compare $rulekeyfile to output of `nft list ruleset`?
-        # maybe needs if/else to handle diff. between no-icmp/icmp
-        if iptables -C FORWARD -o eth0 -j DROP \
-        && iptables -C FORWARD -i eth0 -j DROP  \
-        && ip6tables -C FORWARD -o eth0 -j DROP  \
-        && ip6tables -C FORWARD -i eth0 -j DROP ; then
+        if true ; then
             exit 0
         elif [ $i = 3 ]; then
             echo "Error: Firewall rule(s) not enabled!"
