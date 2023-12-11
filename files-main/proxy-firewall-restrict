@@ -9,7 +9,7 @@
 ##  other than '90_tunnel-restrict'.
 
 
-groupadd -rf qvpn && sync
+sudo groupadd -rf qvpn && sync
 
 # Set firewall restriction policy
 
@@ -36,10 +36,14 @@ nft 'add rule ip6 qubes input ct state established counter accept'
 if [ -e /var/run/qubes-service/vpn-handler-no-icmp ]; then
   nft 'delete rule ip qubes input protocol icmp accept' || true # 5.b
   nft 'delete rule ip6 qubes input protocol icmp accept' || true # 6.b
+  # NOTE: output doesn't seem to exist? to resolve
   nft 'insert rule ip qubes output oifname "eth0" ip protocol icmp counter drop'
+  # NOTE: output doesn't seem to exist? to resolve
   nft 'insert rule ip6 qubes output oifname "eth0" meta l4proto icmp counter drop'
 else
+  # NOTE: output doesn't seem to exist? to resolve
   nft 'insert rule ip qubes output ip protocol icmp skgid 995 counter accept' # 7.b
+  # NOTE: output doesn't seem to exist? to resolve
   nft 'insert rule ip6 qubes output meta l4proto icmp skgid 995 counter accept' # 8.b
 fi
 
@@ -52,10 +56,16 @@ fi
 # Extra restriction prevents accidental communications from within VPN VM to net;
 # The gid-owner rule requires net programs be run with group ID 'qvpn'
 # to allow outbound traffic.
+# NOTE: output doesn't seem to exist? to resolve
 nft 'insert rule ip qubes output drop' # 9.b
+# NOTE: output doesn't seem to exist? to resolve
 nft 'insert rule ip qubes output oifname "lo" counter accept'
+# NOTE: output doesn't seem to exist? to resolve
 nft 'insert rule ip qubes output oifname "eth0" skgid 995 counter accept' # 10.b
 
+# NOTE: output doesn't seem to exist? to resolve
 nft 'insert rule ip6 qubes output drop' # 11.b
+# NOTE: output doesn't seem to exist? to resolve
 nft 'insert rule ip6 qubes output oifname "lo" counter accept'
+# NOTE: output doesn't seem to exist? to resolve
 nft 'insert rule ip6 qubes output oifname "eth0" skgid 995 counter accept' # 12.b
