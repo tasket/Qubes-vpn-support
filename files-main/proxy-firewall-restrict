@@ -19,35 +19,35 @@ qvpnid=$(cat /etc/group | grep qvpn | grep -o '[0-9]' | tr -d '\n')
 # Stop all leaks between downstream (vif+) and upstream (Internet eth0):
 # NOTE: 1.b and its derivatives are apparently terminal actions (i.e. this
 #       order may error by construction)
-nft 'insert rule ip qubes forward drop' # 1.b
-nft 'insert rule ip qubes forward oifname "eth0" counter drop'
-nft 'insert rule ip qubes forward iifname "eth0" counter drop'
+nft "insert rule ip qubes forward drop" # 1.b
+nft "insert rule ip qubes forward oifname 'eth0' counter drop"
+nft "insert rule ip qubes forward iifname 'eth0' counter drop"
 
-nft 'insert rule ip6 qubes forward drop' # 2.b
-nft 'insert rule ip6 qubes forward oifname "eth0" counter drop'
-nft 'insert rule ip6 qubes forward iifname "eth0" counter drop'
+nft "insert rule ip6 qubes forward drop" # 2.b
+nft "insert rule ip6 qubes forward oifname 'eth0' counter drop"
+nft "insert rule ip6 qubes forward iifname 'eth0' counter drop"
 
 # Block INPUT from tunnel(s):
-nft 'insert rule ip qubes input drop' # 3.b
-nft 'insert rule ip6 qubes input drop' # 4.b
+nft "insert rule ip qubes input drop" # 3.b
+nft "insert rule ip6 qubes input drop" # 4.b
 
 # Allow established v6 traffic (v4 rule already present):
-#nft 'add rule ip qubes input ct state established counter accept'
-nft 'add rule ip6 qubes input ct state established counter accept'
+#nft "add rule ip qubes input ct state established counter accept"
+nft "add rule ip6 qubes input ct state established counter accept"
+
+# Create output chains
+nft "add chain ip qubes output { type filter hook output priority 0 ; }" || true
+nft "add chain ip6 qubes output { type filter hook output priority 0 ; }" || true
 
 # Disable icmp packets
 if [ -e /var/run/qubes-service/vpn-handler-no-icmp ]; then
-  nft 'delete rule ip qubes input protocol icmp accept' || true # 5.b
-  nft 'delete rule ip6 qubes input protocol icmp accept' || true # 6.b
-  # NOTE: output doesn't seem to exist? to resolve
-  nft 'insert rule ip qubes output oifname "eth0" ip protocol icmp counter drop'
-  # NOTE: output doesn't seem to exist? to resolve
-  nft 'insert rule ip6 qubes output oifname "eth0" meta l4proto icmp counter drop'
+  nft "delete rule ip qubes input protocol icmp accept" || true # 5.b
+  nft "delete rule ip6 qubes input protocol icmp accept" || true # 6.b
+  nft "insert rule ip qubes output oifname 'eth0' ip protocol icmp counter drop"
+  nft "insert rule ip6 qubes output oifname 'eth0' meta l4proto icmp counter drop"
 else
-  # NOTE: output doesn't seem to exist? to resolve
-  nft 'insert rule ip qubes output ip protocol icmp skgid ${qvpnid} counter accept' # 7.b
-  # NOTE: output doesn't seem to exist? to resolve
-  nft 'insert rule ip6 qubes output meta l4proto icmp skgid ${qvpnid} counter accept' # 8.b
+  nft "insert rule ip qubes output ip protocol icmp skgid ${qvpnid} counter accept" # 7.b
+  nft "insert rule ip6 qubes output meta l4proto icmp skgid ${qvpnid} counter accept" # 8.b
 fi
 
 ###-------------------------------------------------------------------###
@@ -59,16 +59,10 @@ fi
 # Extra restriction prevents accidental communications from within VPN VM to net;
 # The gid-owner rule requires net programs be run with group ID 'qvpn'
 # to allow outbound traffic.
-# NOTE: output doesn't seem to exist? to resolve
-nft 'insert rule ip qubes output drop' # 9.b
-# NOTE: output doesn't seem to exist? to resolve
-nft 'insert rule ip qubes output oifname "lo" counter accept'
-# NOTE: output doesn't seem to exist? to resolve
-nft 'insert rule ip qubes output oifname "eth0" skgid ${qvpnid} counter accept' # 10.b
+nft "insert rule ip qubes output drop" # 9.b
+nft "insert rule ip qubes output oifname 'lo' counter accept"
+nft "insert rule ip qubes output oifname 'eth0' skgid ${qvpnid} counter accept" # 10.b
 
-# NOTE: output doesn't seem to exist? to resolve
-nft 'insert rule ip6 qubes output drop' # 11.b
-# NOTE: output doesn't seem to exist? to resolve
-nft 'insert rule ip6 qubes output oifname "lo" counter accept'
-# NOTE: output doesn't seem to exist? to resolve
-nft 'insert rule ip6 qubes output oifname "eth0" skgid ${qvpnid} counter accept' # 12.b
+nft "insert rule ip6 qubes output drop" # 11.b
+nft "insert rule ip6 qubes output oifname 'lo' counter accept"
+nft "insert rule ip6 qubes output oifname 'eth0' skgid ${qvpnid} counter accept" # 12.b
