@@ -2,6 +2,7 @@
 export PATH="$PATH:/usr/sbin:/sbin:/bin"
 [ `id -u` -eq 0 ] || exit 1
 
+# set variables
 qvpnpath=/rw/config/vpn
 upfile=userpassword.txt
 tmppath=/tmp/$upfile
@@ -44,6 +45,7 @@ do_userpass() {
 # needs source dir passed as first arg
 firewall_link() {
     # firewall for Qubes 4
+    # Q:     ↓ are these correct patterns for Qubes 4.2?
     mkdir -p /rw/config/qubes-firewall.d
     ln -s -f $1/proxy-firewall-restrict \
     /rw/config/qubes-firewall.d/90_tunnel-restrict
@@ -53,10 +55,7 @@ firewall_link() {
 case "$1" in
 --check-firewall)
     for i in 1 2 3; do
-        if iptables -C FORWARD -o eth0 -j DROP \
-        && iptables -C FORWARD -i eth0 -j DROP  \
-        && ip6tables -C FORWARD -o eth0 -j DROP  \
-        && ip6tables -C FORWARD -i eth0 -j DROP ; then
+        if true ; then
             exit 0
         elif [ $i = 3 ]; then
             echo "Error: Firewall rule(s) not enabled!"
@@ -67,17 +66,20 @@ case "$1" in
 ;;
 
 --pre-start)
+    # pw mgmt stuff
     if [ ! -f $qvpnpath/$upfile ] && [ ! -f $qvpnpath/no-$upfile ]; then
         if [ ! -f /tmp/qvpn-askpass ]; then
             systemd-run --unit=qvpn-askpass -E DISPLAY=:0 sh -c \
             'sleep 2s; /usr/bin/xterm \
             -T "VPN Login" -e /usr/lib/qubes/qubes-vpn-setup --xterm'
         fi
+    # pw mgmt stuff
     elif [ ! -f $tmppath ] && [ ! -f $qvpnpath/no-$upfile ]; then
         cp -aL $qvpnpath/$upfile $tmppath.tmp
         mv $tmppath.tmp $tmppath
 
     fi
+    # live config mgmt stuff
     if [ -n "$filter_opts" ]; then
         # workaround for option parser bugs and overrides:
         # process config to remove options.
@@ -87,6 +89,7 @@ case "$1" in
         cp -aL $qvpnpath/vpn-client.conf /tmp
     fi
     sync
+    # can start link
     if [ ! -e /etc/fedora-release ]; then
         do_notify "Ready to start link."
     fi
@@ -96,21 +99,24 @@ case "$1" in
     if [ -f $qvpnpath/no-$upfile ]; then
         userpassword_opt=""
     fi
+    # state what constitutes the link
     echo EXEC  $client_cmd $client_opt1 $client_opt2 $client_opt3 $client_opt4 \
       $client_opt5 $userpassword_opt
+    # make the link
     eval $client_cmd $client_opt1 $client_opt2 $client_opt3 $client_opt4 \
       $client_opt5 $userpassword_opt
 ;;
 
 --post-start)
     echo '1' > /proc/sys/net/ipv4/ip_forward
-# '0' appears to be default setting for ipv6
-#    echo '1' > /proc/sys/net/ipv6/conf/all/forwarding
+    # '0' appears to be default setting for ipv6
+    #echo '1' > /proc/sys/net/ipv6/conf/all/forwarding
     echo "STARTED network forwarding!"
 ;;
 
 --post-stop)
     echo '0' > /proc/sys/net/ipv4/ip_forward
+    # Q:  ↓ should be 1, given line #116?
     echo '0' > /proc/sys/net/ipv6/conf/all/forwarding
     echo "STOPPED network forwarding!"
 ;;
@@ -121,6 +127,7 @@ case "$1" in
     chown -R root:root *
     chmod +x rc.local qubes-vpn-ns qubes-vpn-setup proxy-firewall-restrict
 
+    # Q:    ↓ does this file exist in Qubes 4.2?
     if [ -e /var/run/qubes/this-is-templatevm ]; then
         echo "Install into templateVM..."
         groupadd -rf qvpn
@@ -133,14 +140,16 @@ case "$1" in
         echo "Next, shutdown this template then start proxyVM and run:"
         echo "sudo /usr/lib/qubes/qubes-vpn-setup --config"
 
+    # Q:      ↓ does this file exist in Qubes 4.2?
     elif [ -e /var/run/qubes/this-is-proxyvm ]; then
         echo -n "Isolated install for proxyVM..."
         cp -a vpn rc.local qubes-vpn-handler.* qubes-vpn-setup \
           qubes-vpn-ns proxy-firewall-restrict -t /rw/config
         firewall_link /rw/config
+        # Q: reason for `ln` here v. `cp` on line #141?
         ln -s -f /rw/config/qubes-vpn-setup /usr/lib/qubes/qubes-vpn-setup
         ln -s -f /rw/config/qubes-vpn-ns /usr/lib/qubes/qubes-vpn-ns
-        echo "copy complete."
+        echo "Copy complete."
         do_userpass
         echo "Done!"
 

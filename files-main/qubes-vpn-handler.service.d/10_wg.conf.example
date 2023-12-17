@@ -25,6 +25,6 @@ ExecStartPre=/bin/sed -i "/~~ function override insertion point/a set_dns() { ex
 ExecStartPre=/bin/sed -i "/~~ function override insertion point/a unset_dns() { /usr/lib/qubes/qubes-vpn-ns down; }" /tmp/wg-quick
 
 # Workaround: Allow wg access to net
-ExecStartPre=/sbin/iptables -P OUTPUT ACCEPT
+ExecStartPre=/sbin/nft "insert rule ip qubes output accept" # 1.a
 
 ExecStop=/tmp/wg-quick down /tmp/vpn-client.conf
